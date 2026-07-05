@@ -85,7 +85,6 @@ body{font-family:var(--font);font-size:13px;color:var(--gray);background:#f0f2f5
 table{width:100%;border-collapse:collapse;font-size:11.5px}
 thead th{background:#2c3e6a;color:#fff;padding:7px 9px;text-align:left;font-weight:600;font-size:11px;white-space:nowrap;position:sticky;top:0}
 thead th.sortable{cursor:pointer;user-select:none}
-thead th.sortable:hover{background:#384e82}
 thead th .sort-ico{margin-left:3px;opacity:0.5;font-size:10px}
 tbody td{padding:6px 9px;border-bottom:1px solid var(--gray3);vertical-align:top}
 tbody tr:nth-child(even) td{background:var(--gray5)}
@@ -145,11 +144,84 @@ tbody tr:hover td{background:#eef3fc}
 .comp-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:12px}
 .comp-card h4{font-family:var(--font-serif);font-size:13px;color:var(--navy);font-weight:700;border-bottom:2px solid var(--navy);padding-bottom:5px;margin-bottom:10px}
 
+/* ========== MOBILE RESPONSIVE ========== */
+@media(max-width:768px){
+  body{flex-direction:column}
+  #sidebar{width:100%;min-width:100%;max-height:auto;overflow-y:visible;display:none;position:fixed;left:0;top:0;height:100%;z-index:100;overflow-y:auto}
+  #sidebar.mobile-open{display:flex}
+  #main{width:100%;height:100vh;overflow:hidden}
+  #topbar{min-height:45px;padding:8px 12px;gap:6px}
+  #topbar h2{font-size:13px;margin-right:0;order:2;flex:1}
+  #menu-toggle{display:flex;align-items:center;gap:4px;background:var(--navy);color:#fff;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;font-size:14px;order:1}
+  #content{padding:12px;overflow-y:auto}
+  
+  .kpi-row{gap:8px}
+  .kpi-card{min-width:90px;padding:8px 10px}
+  .kpi-val{font-size:20px}
+  .kpi-lbl{font-size:9px}
+  .kpi-sub{font-size:9px}
+  
+  .filters-bar{padding:8px 10px;gap:6px}
+  .filter-group{min-width:100px}
+  .filter-group select,.filter-group input{font-size:11px;padding:4px 6px;min-width:100px}
+  .filter-group input{min-width:140px}
+  .filter-clear{padding:3px 0;font-size:10px;margin-top:10px}
+  
+  .section-head h3{font-size:12px}
+  .section-head span{font-size:9px}
+  table{font-size:10px}
+  thead th{padding:5px 6px;font-size:10px}
+  tbody td{padding:5px 6px}
+  
+  .export-btn{padding:4px 8px;font-size:10px;gap:2px}
+  .export-btn.primary{padding:4px 8px;font-size:10px}
+  
+  .comp-section{gap:10px;margin-bottom:10px}
+  .comp-card{padding:10px}
+  .comp-card h4{font-size:12px;padding-bottom:4px;margin-bottom:8px}
+  
+  .badge{font-size:9px;padding:2px 6px}
+  .prog-wrap{gap:4px}
+  .prog-pct{font-size:9px;min-width:28px}
+}
+
+@media(max-width:480px){
+  #topbar{min-height:40px;padding:6px 8px}
+  #topbar h2{font-size:12px}
+  #menu-toggle{font-size:12px;padding:4px 8px}
+  
+  .kpi-row{gap:6px;margin-bottom:10px}
+  .kpi-card{min-width:80px;padding:6px 8px}
+  .kpi-val{font-size:18px}
+  .kpi-lbl{font-size:8px;margin-top:2px}
+  
+  .filters-bar{flex-direction:column;padding:6px 8px;gap:4px}
+  .filter-group{width:100%;min-width:auto}
+  .filter-group select,.filter-group input{width:100%;min-width:auto;font-size:11px}
+  .filter-clear{font-size:9px;margin-top:8px}
+  
+  .section-head{padding:6px 10px;flex-direction:column;align-items:flex-start;gap:2px}
+  .section-head h3{font-size:11px}
+  .section-head span{font-size:8px}
+  
+  table{font-size:9px}
+  thead th{padding:4px 4px;font-size:9px}
+  tbody td{padding:4px 4px}
+  
+  .export-btn{padding:3px 6px;font-size:9px;gap:2px}
+  
+  .comp-card{padding:8px}
+  .comp-card h4{font-size:11px}
+  
+  .badge{font-size:8px;padding:1px 5px}
+  .prog-pct{font-size:8px;min-width:25px}
+}
+
 /* PRINT */
 @media print{
-  #sidebar,#topbar .export-btn,#topbar .export-btn,#filters-bar,.filter-group,#loading-overlay{display:none!important}
-  body{background:#fff;display:block;height:auto;overflow:visible}
-  #main{overflow:visible}
+  #sidebar,#topbar .export-btn,#filters-bar,.filter-group,#loading-overlay,#menu-toggle{display:none!important}
+  body{background:#fff;display:block;height:auto;overflow:visible;flex-direction:column}
+  #main{width:100%;overflow:visible;height:auto}
   #content{overflow:visible;padding:0}
   .section{page-break-inside:avoid;border:1px solid #ccc}
   .kpi-card{border:1px solid #ccc}
@@ -177,37 +249,37 @@ tbody tr:hover td{background:#eef3fc}
   <nav>
     <div class="nav-group">
       <div class="nav-label">Overview</div>
-      <div class="nav-item active" onclick="showPage('dashboard')" id="nav-dashboard">
+      <div class="nav-item active" onclick="showPage('dashboard');closeMobileMenu()" id="nav-dashboard">
         <span class="ico">&#9632;</span> Executive Dashboard
       </div>
     </div>
     <div class="nav-group">
       <div class="nav-label">Reports</div>
-      <div class="nav-item" onclick="showPage('r1')" id="nav-r1">
+      <div class="nav-item" onclick="showPage('r1');closeMobileMenu()" id="nav-r1">
         <span class="ico">&#9654;</span> Work Started Status
       </div>
-      <div class="nav-item" onclick="showPage('r2')" id="nav-r2">
+      <div class="nav-item" onclick="showPage('r2');closeMobileMenu()" id="nav-r2">
         <span class="ico">&#9654;</span> Contractor Wise
       </div>
-      <div class="nav-item" onclick="showPage('r3')" id="nav-r3">
+      <div class="nav-item" onclick="showPage('r3');closeMobileMenu()" id="nav-r3">
         <span class="ico">&#9654;</span> Combined Division
       </div>
-      <div class="nav-item" onclick="showPage('r4')" id="nav-r4">
+      <div class="nav-item" onclick="showPage('r4');closeMobileMenu()" id="nav-r4">
         <span class="ico">&#9654;</span> Delay Analysis
       </div>
-      <div class="nav-item" onclick="showPage('r5')" id="nav-r5">
+      <div class="nav-item" onclick="showPage('r5');closeMobileMenu()" id="nav-r5">
         <span class="ico">&#9654;</span> Scheme Tracker
       </div>
-      <div class="nav-item" onclick="showPage('r6')" id="nav-r6">
+      <div class="nav-item" onclick="showPage('r6');closeMobileMenu()" id="nav-r6">
         <span class="ico">&#9654;</span> Extension Pivot
       </div>
-      <div class="nav-item" onclick="showPage('r7')" id="nav-r7">
+      <div class="nav-item" onclick="showPage('r7');closeMobileMenu()" id="nav-r7">
         <span class="ico">&#9654;</span> Pending Actions
       </div>
     </div>
     <div class="nav-group">
       <div class="nav-label">Search</div>
-      <div class="nav-item" onclick="showPage('search')" id="nav-search">
+      <div class="nav-item" onclick="showPage('search');closeMobileMenu()" id="nav-search">
         <span class="ico">&#9654;</span> Scheme Register
       </div>
     </div>
@@ -221,6 +293,7 @@ tbody tr:hover td{background:#eef3fc}
 <!-- MAIN -->
 <div id="main">
   <div id="topbar">
+    <button id="menu-toggle" onclick="toggleMobileMenu()" style="display:none">☰ Menu</button>
     <h2 id="page-title">Executive Dashboard</h2>
     <button class="export-btn" onclick="exportCSV()">&#8595; CSV</button>
     <button class="export-btn" onclick="exportExcel()">&#8595; Excel</button>
@@ -252,6 +325,32 @@ let DATA={tinsukia:[],digboi:[]};
 let currentPage='dashboard';
 let sortState={col:-1,dir:1};
 
+function toggleMobileMenu(){
+  const sidebar=document.getElementById('sidebar');
+  sidebar.classList.toggle('mobile-open');
+}
+
+function closeMobileMenu(){
+  const sidebar=document.getElementById('sidebar');
+  sidebar.classList.remove('mobile-open');
+}
+
+function checkMobileView(){
+  const toggle=document.getElementById('menu-toggle');
+  if(window.innerWidth<=768){
+    toggle.style.display='flex';
+  }else{
+    toggle.style.display='none';
+    closeMobileMenu();
+  }
+}
+
+window.addEventListener('resize',checkMobileView);
+window.addEventListener('load',()=>{
+  checkMobileView();
+  loadData();
+});
+
 async function loadData(){
   showLoading(true,'Fetching spreadsheet data...');
   try{
@@ -270,46 +369,41 @@ async function loadData(){
   }
 }
 
-// ---- Google Visualization API (gviz) via JSONP — no CORS proxy needed ----
-// Google's own gviz endpoint supports a JSONP-style responseHandler callback,
-// which is loaded via a <script> tag rather than fetch(), so it is never
-// subject to CORS restrictions in the first place.
 async function fetchSheet(gid,sheet){
   const json=await fetchGvizJSON(gid);
   return parseGviz(json,sheet);
 }
 
-function fetchGvizJSON(gid) {
-  return new Promise((resolve, reject) => {
-    const cbName = '__gvizCB_' + gid + '_' + Date.now() + '_' + Math.floor(Math.random() * 1e6);
-    // CORRECTED: use colon (:) for responseHandler, not equals
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?gid=${gid}&tqx=out:json;responseHandler:${cbName}`;
-    const script = document.createElement('script');
-    let settled = false;
-    const timer = setTimeout(() => {
-      if (settled) return;
-      settled = true;
+function fetchGvizJSON(gid){
+  return new Promise((resolve,reject)=>{
+    const cbName='__gvizCB_'+gid+'_'+Date.now()+'_'+Math.floor(Math.random()*1e6);
+    const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?gid=${gid}&tqx=out:json;responseHandler:${cbName}`;
+    const script=document.createElement('script');
+    let settled=false;
+    const timer=setTimeout(()=>{
+      if(settled) return;
+      settled=true;
       cleanup();
       reject(new Error(`Timed out loading sheet (gid ${gid})`));
-    }, 15000);
-    function cleanup() {
+    },15000);
+    function cleanup(){
       delete window[cbName];
-      if (script.parentNode) script.parentNode.removeChild(script);
+      if(script.parentNode) script.parentNode.removeChild(script);
       clearTimeout(timer);
     }
-    window[cbName] = function(data) {
-      if (settled) return;
-      settled = true;
+    window[cbName]=function(data){
+      if(settled) return;
+      settled=true;
       cleanup();
       resolve(data);
     };
-    script.onerror = function() {
-      if (settled) return;
-      settled = true;
+    script.onerror=function(){
+      if(settled) return;
+      settled=true;
       cleanup();
       reject(new Error(`Failed to load sheet (gid ${gid}). Check the sheet is shared publicly.`));
     };
-    script.src = url;
+    script.src=url;
     document.head.appendChild(script);
   });
 }
@@ -425,7 +519,7 @@ function filtersBar(id,opts={}){
 }
 
 function getFilterVals(id,opts={}){
-  const g=n=>{const el=document.getElementById(n);return el?el.value||'':'';}
+  const g=n=>{const el=document.getElementById(n);return el?el.value||'':'';};
   return{
     sheet:g(`${id}-sheet`),
     subdiv:g(`${id}-subdiv`),
@@ -443,11 +537,10 @@ function clearFilters(id){
   renderCurrentPage();
 }
 
-// ========= PAGES =========
-
 function renderDashboard(){
   const all=allRows();
   if(!all.length){document.getElementById('page-dashboard').innerHTML='<div class="err-box">No data loaded yet.</div>';return;}
+  
   const t=DATA.tinsukia,d=DATA.digboi;
   const cs=r=>classifyStatus(get(r,COL.STATUS));
   const ts=t.filter(r=>cs(r)==='started').length,ds=d.filter(r=>cs(r)==='started').length;
@@ -455,17 +548,25 @@ function renderDashboard(){
   const tn=t.filter(r=>cs(r)==='notwilling').length,dn=d.filter(r=>cs(r)==='notwilling').length;
   const totalS=ts+ds,totalW=tw+dw,totalN=tn+dn,total=all.length;
   const pct=n=>total?Math.round(n/total*100):0;
-  const contractors=[...new Set(all.map(r=>get(r,COL.CONTRACTOR)).filter(Boolean))];
+  
+  const contractorSet=new Set();
+  all.forEach(r=>{
+    const contractor=get(r,COL.CONTRACTOR);
+    if(contractor&&contractor.trim()&&contractor!=='—'){
+      contractorSet.add(contractor.trim());
+    }
+  });
+  
+  const contractorCount=contractorSet.size;
 
   let html=`<div class="kpi-row">
     ${kpiCard(total,'Total Schemes','','Tinsukia + Digboi')}
     ${kpiCard(totalS,'Works Started','good',pct(totalS)+'% of total')}
     ${kpiCard(totalW,'Willing / Not Started','warn',pct(totalW)+'% of total')}
     ${kpiCard(totalN,'Not Willing','danger',pct(totalN)+'% of total')}
-    ${kpiCard(contractors.length,'Contractors','info','')}
+    ${kpiCard(contractorCount,'Contractors','info','')}
   </div>`;
 
-  // Comparison section
   html+=`<div class="comp-section">`;
   [['Tinsukia',t,ts,tw,tn],['Digboi',d,ds,dw,dn]].forEach(([name,rows,s,w,n])=>{
     const tot=rows.length||1;
@@ -484,7 +585,6 @@ function renderDashboard(){
   });
   html+=`</div>`;
 
-  // Status breakdown table
   const bySubdiv={};
   all.forEach(r=>{
     const k=get(r,COL.SUBDIV)||r.sheet;
@@ -498,12 +598,11 @@ function renderDashboard(){
   let tbl=`<table><thead><tr><th>Sub-Division</th><th>Total</th><th>Started</th><th>Willing / Not Started</th><th>Not Willing</th><th>Progress</th></tr></thead><tbody>`;
   Object.values(bySubdiv).forEach(s=>{
     const pct2=Math.round(s.started/s.total*100);
-    const cls=pct2>60?'':'pct2>30?warn:danger';
     tbl+=`<tr><td><strong>${s.name}</strong></td><td>${s.total}</td>
     <td><span class="badge b-started">${s.started}</span></td>
     <td><span class="badge b-willing">${s.willing}</span></td>
     <td><span class="badge b-notwilling">${s.notwilling}</span></td>
-    <td><div class="prog-wrap"><div class="prog-bar"><div class="prog-fill ${pct2<30?'danger':pct2<60?'warn':''}" style="width:${pct2}%"></div></div><span class="prog-pct">${pct2}%</span></div></td></tr>`;
+    <td><div class="prog-wrap"><div class="prog-bar"><div class="prog-fill ${pct2<30?'danger':pct2<60?'warn':''}\" style=\"width:${pct2}%\"></div></div><span class="prog-pct">${pct2}%</span></div></td></tr>`;
   });
   tbl+=`<tr style="background:#e8edf7;font-weight:700"><td>TOTAL</td><td>${total}</td><td>${totalS}</td><td>${totalW}</td><td>${totalN}</td><td>${pct(totalS)}%</td></tr></tbody></table>`;
   html+=sectionWrap('Division-wise Status Summary','All schemes',tbl);
@@ -528,7 +627,6 @@ function renderR1(){
     ${kpiCard(n,'Not Willing','danger')}
   </div>`;
 
-  // Pivot: sub-division x extension month
   const extMonths=[...new Set(rows.map(r=>fmtMonthYear(get(r,COL.EXTDATE))))].filter(m=>m&&m!=='—').sort();
   const subdivs=[...new Set(rows.map(r=>get(r,COL.SUBDIV)||r.sheet))].filter(Boolean).sort();
 
@@ -546,7 +644,6 @@ function renderR1(){
       });
       pvt+=`<td class="total-col">${tot}</td></tr>`;
     });
-    // totals row
     pvt+=`<tr class="total-row"><td class="row-label">TOTAL</td>`;
     extMonths.forEach(m=>{
       const cnt=rows.filter(r=>fmtMonthYear(get(r,COL.EXTDATE))===m).length;
@@ -556,14 +653,12 @@ function renderR1(){
     html+=sectionWrap('Timeline Extension by STATE HQ (Pivot)','Month-wise scheme count',pvt);
   }
 
-  // Detail table
   let tbl=`<table id="r1-tbl"><thead><tr>
     <th>#</th><th>Sub-Division</th><th>SO Name</th><th>Scheme ID</th><th>Scheme Name</th>
     <th>NJJM Date</th><th>Extension (STATE HQ)</th><th>Tentative Date</th>
     <th>Started</th><th>Willing</th><th>Not Willing</th>
   </tr></thead><tbody>`;
 
-  // Group by sub-division
   const bySD={};
   rows.forEach(r=>{const k=get(r,COL.SUBDIV)||r.sheet;if(!bySD[k])bySD[k]=[];bySD[k].push(r);});
   let idx=1;
@@ -620,13 +715,12 @@ function renderR2(){
     const s=c.rows.filter(r=>cs(r)==='started').length;
     const w=c.rows.filter(r=>cs(r)==='willing').length;
     const n=c.rows.filter(r=>cs(r)==='notwilling').length;
-    const pct2=Math.round(s/c.rows.length*100);
     tbl+=`<tr>
       <td>${i+1}</td>
       <td><strong>${c.name}</strong></td>
       <td>${[...c.subdivs].join(', ')}</td>
       <td>${c.rows.length}</td>
-      <td class="${s>0?'':''}"><span class="badge b-started">${s}</span></td>
+      <td><span class="badge b-started">${s}</span></td>
       <td><span class="badge b-willing">${w}</span></td>
       <td><span class="badge b-notwilling">${n}</span></td>
       <td style="font-size:10px">${[...c.extensions].sort().map(e=>`<span class="badge b-navy">${e}</span>`).join(' ')||'—'}</td>
@@ -682,7 +776,6 @@ function renderR3(){
     ${kpiCard(all.filter(r=>cs(r)==='notwilling').length,'Not Willing','danger')}
   </div>`;
 
-  // Overall summary
   let sumTbl=`<table><thead><tr><th>Division</th><th>Total Schemes</th><th>Started</th><th>Willing / Not Started</th><th>Not Willing</th><th>Progress</th></tr></thead><tbody>`;
   [[`Tinsukia`,t],[`Digboi`,d],[`COMBINED`,all]].forEach(([name,rows])=>{
     const s=rows.filter(r=>cs(r)==='started').length;
@@ -698,7 +791,6 @@ function renderR3(){
   sumTbl+=`</tbody></table>`;
   html+=sectionWrap('Overall Combined Summary','Tinsukia Division (Tinsukia + Digboi)',sumTbl);
 
-  // Detail table by subdivision
   let tbl=`<table><thead><tr><th>#</th><th>Sub-Division</th><th>SO Name</th><th>Scheme ID</th><th>Scheme Name</th><th>Contractor</th><th>TYPE-1</th><th>TYPE-2</th><th>Extension</th><th>Status</th></tr></thead><tbody>`;
   let idx=1;
   ['Tinsukia','Digboi'].forEach(sheetName=>{
@@ -807,7 +899,6 @@ function renderR6(){
     ${kpiCard(rows.filter(r=>!get(r,COL.EXTDATE)).length,'No Extension Data','warn')}
   </div>`;
 
-  // Pivot: month x status
   let pvt=`<div class="pivot-wrap"><table class="pivot-table"><thead><tr>
     <th class="row-head">Extension Month</th>
     <th>Started</th><th>Willing / Not Started</th><th>Not Willing</th><th>Total</th>
@@ -825,7 +916,6 @@ function renderR6(){
   pvt+=`</tbody></table></div>`;
   html+=sectionWrap('Extension Pivot Table','Month-wise extension count with status breakdown',pvt);
 
-  // By subdivision per month
   const subdivs=[...new Set(rows.map(r=>get(r,COL.SUBDIV)||r.sheet))].filter(Boolean).sort();
   if(subdivs.length>1){
     let pvt2=`<div class="pivot-wrap"><table class="pivot-table"><thead><tr><th class="row-head">Extension Month</th>`;
@@ -917,7 +1007,6 @@ function renderSearch(){
   document.getElementById('page-search').innerHTML=html;
 }
 
-// ========= NAVIGATION =========
 const PAGE_TITLES={
   dashboard:'Executive Dashboard',
   r1:'Report 1 — Work Started Status (CIRP)',
@@ -953,7 +1042,6 @@ function renderCurrentPage(){
   else if(p==='search') renderSearch();
 }
 
-// ========= EXPORT =========
 function getExportRows(){
   return filterRows(allRows(),{});
 }
@@ -984,7 +1072,6 @@ function exportExcel(){
   XLSX.writeFile(wb,`CIRP_Data_${new Date().toISOString().slice(0,10)}.xlsx`);
 }
 
-// ========= UTILS =========
 function showLoading(show,msg=''){
   document.getElementById('loading-overlay').style.display=show?'flex':'none';
   if(msg) setMsg(msg);
@@ -995,8 +1082,6 @@ function setDotStatus(which,count){
   document.getElementById('dot-'+which).className='dot'+(count>0?' ok':'');
   document.getElementById('status-'+which).textContent=(which==='t'?'Tinsukia':'Digboi')+': '+(count>0?count+' schemes':'load failed');
 }
-
-window.addEventListener('load',loadData);
 </script>
 </body>
 </html>
