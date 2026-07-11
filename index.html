@@ -189,17 +189,11 @@ input[type=checkbox]{accent-color:var(--teal);}
 /* ---------- KPI strip ---------- */
 .kpi-strip{
   display:grid;
-  grid-template-columns:repeat(5,1fr);
+  grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
   gap:12px;
   padding:20px clamp(16px,3vw,40px) 0;
   max-width:1500px;
   margin:0 auto;
-}
-@media(max-width:1100px){
-  .kpi-strip{grid-template-columns:repeat(2,1fr);}
-}
-@media(max-width:560px){
-  .kpi-strip{grid-template-columns:1fr;}
 }
 .kpi{
   background:var(--surface);
@@ -228,6 +222,7 @@ input[type=checkbox]{accent-color:var(--teal);}
 .kpi.accent-alert .value{color:var(--alert);}
 .kpi.accent-success .value{color:var(--success);}
 .kpi.accent-teal .value{color:var(--teal-dark);}
+.kpi.accent-amber .value{color:var(--amber);}
 
 /* flow gauge (signature element) */
 .flow-gauge{
@@ -456,6 +451,7 @@ tbody tr.expand-row td{white-space:normal; background:#FAFCFB;}
 .badge.atrisk{background:var(--alert-light); color:#A5352C;}
 .badge.completed{background:var(--teal-light); color:var(--teal-dark);}
 .badge.unknown{background:var(--grey-light); color:var(--muted);}
+.badge.schoolbased{background:#FFF4E6; color:#B85C00;}
 .tab-tag{
   font-size:10.3px;
   font-weight:600;
@@ -554,9 +550,7 @@ footer{
       <option value="unknown">Not specified</option>
     </select>
     <select id="fIssue"><option value="">All issue groups</option></select>
-    <select id="fSOName"><option value="">All SO Names</option></select>
-    <select id="fSubDiv"><option value="">All Sub-Divisions</option></select>
-    <select id="fLAC"><option value="">All LACs</option></select>
+    <select id="fSchemeType"><option value="">All scheme types</option><option value="schoolbased">School Based</option><option value="other">Other</option></select>
     <input type="text" id="fSearch" placeholder="Search scheme name, ID or division...">
     <button class="clear-btn" id="clearFilters">Clear filters</button>
     <span class="result-count" id="resultCount"></span>
@@ -606,6 +600,8 @@ footer{
 <script>
 const SHEET_ID = "1e5-DMSWzGL8MUNVFiqrbG9PV0s4zJ2ywEATOrrUUoDY";
 const IMIS_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwCZb7LO3b1KMda5osejVObaQuYwbz4pak7tiH4tjiVLe9zg7UiHyb4lPqVqdFCtPm22N8k3vtYSOX/pub?gid=0&single=true&output=csv";
+
+const SCHOOL_BASED_KEYWORDS = ["lps", "ups", "school", "balijan", "saru mechai", "tarani pather"];
 
 const TABS = [
   {key:"pwss",  name:"New SVS - PWSS",  short:"PWSS (SVS)", gid:"700142457"},
@@ -668,6 +664,14 @@ async function loadIMISData(){
   }
 }
 
+function isSchoolBasedScheme(schemeName){
+  const name = (schemeName || "").toLowerCase();
+  // Exclude if ends with "pwss"
+  if(name.endsWith("pwss")) return false;
+  // Include if contains school-based keywords
+  return SCHOOL_BASED_KEYWORDS.some(keyword => name.includes(keyword));
+}
+
 function normRisk(conf){
   if(!conf) return "unknown";
   const c = conf.trim().toLowerCase();
@@ -676,6 +680,7 @@ function normRisk(conf){
   if(c === "no") return "atrisk";
   return "unknown";
 }
+
 function riskLabel(r){
   return {ontrack:"Yes", atrisk:"No", completed:"Completed", unknown:"--"}[r] || "--";
 }
@@ -708,6 +713,8 @@ function parseTab(csvText, tab){
     const confRaw = (r[7]||"").trim();
     
     const imis = imisData[schemeId] || {};
+    const schemeType = isSchoolBasedScheme(schemeName) ? "schoolbased" : "other";
+
     out.push({
       tabKey: tab.key,
       tabShort: tab.short,
@@ -727,6 +734,7 @@ function parseTab(csvText, tab){
       soName: imis.soName || "--",
       subDivision: imis.subDivision || "--",
       lac: imis.lac || "--",
+      schemeType: schemeType,
       key: tab.key + "-" + sno + "-" + schemeId
     });
   }
@@ -778,9 +786,7 @@ function getFilterState(){
     status: document.getElementById("fStatus").value,
     risk: document.getElementById("fRisk").value,
     issue: document.getElementById("fIssue").value,
-    soName: document.getElementById("fSOName").value,
-    subDiv: document.getElementById("fSubDiv").value,
-    lac: document.getElementById("fLAC").value,
+    schemeType: document.getElementById("fSchemeType").value,
     search: document.getElementById("fSearch").value.trim().toLowerCase()
   };
 }
@@ -793,9 +799,7 @@ function applyFilters(rows){
     if(f.status && r.status !== f.status) return false;
     if(f.risk && r.risk !== f.risk) return false;
     if(f.issue && r.issueGroup !== f.issue) return false;
-    if(f.soName && r.soName !== f.soName) return false;
-    if(f.subDiv && r.subDivision !== f.subDiv) return false;
-    if(f.lac && r.lac !== f.lac) return false;
+    if(f.schemeType && r.schemeType !== f.schemeType) return false;
     if(f.search){
       const hay = (r.schemeName+" "+r.schemeId+" "+r.division).toLowerCase();
       if(!hay.includes(f.search)) return false;
@@ -808,17 +812,12 @@ function populateFilterOptions(){
   const divisions = [...new Set(allRows.map(r=>r.division))].sort();
   const statuses = [...new Set(allRows.map(r=>r.status).filter(Boolean))].sort();
   const issues = [...new Set(allRows.map(r=>r.issueGroup).filter(Boolean))].sort();
-  const soNames = [...new Set(allRows.map(r=>r.soName).filter(s=>s!=="--"))].sort();
-  const subDivs = [...new Set(allRows.map(r=>r.subDivision).filter(s=>s!=="--"))].sort();
-  const lacs = [...new Set(allRows.map(r=>r.lac).filter(l=>l!=="--"))].sort();
   
   fillSelect("fDivision", divisions);
   fillSelect("fStatus", statuses);
   fillSelect("fIssue", issues);
-  fillSelect("fSOName", soNames);
-  fillSelect("fSubDiv", subDivs);
-  fillSelect("fLAC", lacs);
 }
+
 function fillSelect(id, values){
   const sel = document.getElementById(id);
   const current = sel.value;
@@ -855,11 +854,13 @@ function renderKPIs(filtered){
   const completed = filtered.filter(r=>r.risk==="completed").length;
   const ontrack = filtered.filter(r=>r.risk==="ontrack").length;
   const atrisk = filtered.filter(r=>r.risk==="atrisk").length;
+  const schoolBased = filtered.filter(r=>r.schemeType==="schoolbased").length;
   const finVals = filtered.map(r=>r.finPct).filter(v=>v!==null && !isNaN(v));
   const avgFin = finVals.length ? (finVals.reduce((a,b)=>a+b,0)/finVals.length) : 0;
 
   const kpis = [
     {label:"Total Schemes", value: total, sub: `${filtered.filter(r=>r.tabKey==='pwss').length} PWSS | ${filtered.filter(r=>r.tabKey==='mvs').length} MVS | ${filtered.filter(r=>r.tabKey==='mvsqq').length} MVS(Q&Q)`, cls:""},
+    {label:"School Based Schemes", value: schoolBased, sub: total ? (schoolBased/total*100).toFixed(1)+"% of filtered" : "--", cls:"accent-amber"},
     {label:"Completed / Handed Over", value: completed, sub: total ? (completed/total*100).toFixed(1)+"%  of filtered" : "--", cls:"accent-success"},
     {label:"On Track (Yes)", value: ontrack, sub: total ? (ontrack/total*100).toFixed(1)+"%  of filtered" : "--", cls:"accent-teal"},
     {label:"At Risk (No)", value: atrisk, sub: total ? (atrisk/total*100).toFixed(1)+"%  need attention" : "--", cls:"accent-alert"},
@@ -966,9 +967,7 @@ function exportToCSV(rows, filename){
     {key:"njjmDate", label:"NJJM Target Date"},
     {key:"risk", label:"Confidence"},
     {key:"issueGroup", label:"Issue Group"},
-    {key:"soName", label:"SO Name"},
-    {key:"subDivision", label:"Sub-Division"},
-    {key:"lac", label:"LAC"},
+    {key:"schemeType", label:"Scheme Type"},
     {key:"reason", label:"Reason"},
     {key:"suggestions", label:"Suggestions"},
     {key:"tentativeDate", label:"Tentative Date"}
@@ -984,6 +983,7 @@ function exportToCSV(rows, filename){
     const values = EXPORT_COLUMNS.map(col=>{
       let val = row[col.key] || "";
       if(col.key === "finPct" && val !== "") val = val.toFixed(1) + "%";
+      if(col.key === "schemeType") val = val === "schoolbased" ? "School Based" : "Other";
       val = String(val).replace(/"/g, '""');
       return `"${val}"`;
     });
@@ -1039,9 +1039,7 @@ const COLUMNS = [
   {key:"njjmDate", label:"NJJM Target"},
   {key:"risk", label:"Confidence"},
   {key:"issueGroup", label:"Issue Group"},
-  {key:"soName", label:"SO Name"},
-  {key:"subDivision", label:"Sub-Division"},
-  {key:"lac", label:"LAC"},
+  {key:"schemeType", label:"Scheme Type"},
   {key:"tentativeDate", label:"Tentative Date"}
 ];
 
@@ -1086,6 +1084,7 @@ function renderTableBody(filtered){
   sorted.forEach(r=>{
     const tr = document.createElement("tr");
     const hasDetail = r.reason || r.suggestions;
+    const schemeTypeLabel = r.schemeType === "schoolbased" ? "School Based" : "Other";
     tr.innerHTML = `
       <td>${hasDetail ? `<button class="expand-toggle" data-key="${r.key}">${expandedKey===r.key?"-":"+"}</button>` : ""}</td>
       <td><span class="tab-tag">${r.tabShort}</span></td>
@@ -1098,9 +1097,7 @@ function renderTableBody(filtered){
       <td>${r.njjmDate||"--"}</td>
       <td><span class="badge ${r.risk}">${riskLabel(r.risk)}</span></td>
       <td class="wrap">${r.issueGroup||"--"}</td>
-      <td>${r.soName||"--"}</td>
-      <td>${r.subDivision||"--"}</td>
-      <td>${r.lac||"--"}</td>
+      <td><span class="badge ${r.schemeType}">${schemeTypeLabel}</span></td>
       <td class="mono">${r.tentativeDate||"--"}</td>
     `;
     frag.appendChild(tr);
@@ -1122,7 +1119,6 @@ function renderTableBody(filtered){
   });
 }
 
-/* Master render */
 function render(skipFilterRepopulate){
   if(!skipFilterRepopulate) populateFilterOptions();
   renderTabPills();
@@ -1137,8 +1133,7 @@ function render(skipFilterRepopulate){
   document.getElementById("resultCount").textContent = `${filtered.length} of ${allRows.length} schemes shown`;
 }
 
-/* Event handlers */
-["fDivision","fStatus","fRisk","fIssue","fSOName","fSubDiv","fLAC"].forEach(id=>{
+["fDivision","fStatus","fRisk","fIssue","fSchemeType"].forEach(id=>{
   document.getElementById(id).addEventListener("change", ()=>render(true));
 });
 document.getElementById("fSearch").addEventListener("input", ()=>render(true));
@@ -1147,9 +1142,7 @@ document.getElementById("clearFilters").addEventListener("click", ()=>{
   document.getElementById("fStatus").value="";
   document.getElementById("fRisk").value="";
   document.getElementById("fIssue").value="";
-  document.getElementById("fSOName").value="";
-  document.getElementById("fSubDiv").value="";
-  document.getElementById("fLAC").value="";
+  document.getElementById("fSchemeType").value="";
   document.getElementById("fSearch").value="";
   activeTab = "all";
   render();
