@@ -3,1253 +3,1127 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CIRP MIS Dashboard — Tinsukia Division</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<title>CIRP -- Timeline Matrix</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <style>
 :root{
-  --navy:#1B2A4A;--navy2:#243d6a;--navy3:#0f1e35;
-  --amber:#B45309;--amber-bg:#FEF3C7;
-  --green:#1a7f4b;--green-bg:#d4edda;
-  --red:#c0392b;--red-bg:#f8d7da;
-  --blue:#1a5fa3;--blue-bg:#dbeafe;
-  --gray:#374151;--gray2:#6b7280;--gray3:#e5e7eb;--gray4:#f3f4f6;--gray5:#f9fafb;
-  --border:#d1d5db;--radius:6px;
-  --font:Arial,Helvetica,sans-serif;--font-serif:Georgia,'Times New Roman',serif;
+  --ink:#0B2540;
+  --ink-2:#123A5E;
+  --teal:#0F9E96;
+  --teal-dark:#0A7C75;
+  --teal-light:#CFEBE8;
+  --alert:#D6483E;
+  --alert-light:#FBE1DE;
+  --amber:#DE9A2E;
+  --amber-light:#FBEAD1;
+  --success:#1E9E6B;
+  --success-light:#D9F0E5;
+  --grey:#7B8A91;
+  --grey-light:#E8ECEB;
+  --bg:#F2F6F5;
+  --surface:#FFFFFF;
+  --line:#DCE4E2;
+  --text:#16262E;
+  --muted:#5C7079;
+  --radius:10px;
 }
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--font);font-size:13px;color:var(--gray);background:#f0f2f5;display:flex;height:100vh;overflow:hidden}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'IBM Plex Sans', sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:'IBM Plex Mono', monospace;}
+.display{font-family:'Space Grotesk', sans-serif;}
 
-/* SIDEBAR */
-#sidebar{width:220px;min-width:220px;background:var(--navy);color:#fff;display:flex;flex-direction:column;overflow-y:auto;z-index:10}
-#sidebar-header{padding:16px 14px 12px;border-bottom:1px solid rgba(255,255,255,0.1)}
-#sidebar-header h1{font-family:var(--font-serif);font-size:14px;font-weight:700;line-height:1.4;color:#fff}
-#sidebar-header p{font-size:10px;color:#a0b0c8;margin-top:4px}
-#data-status-bar{padding:8px 14px;font-size:10px;background:rgba(0,0,0,0.2);border-bottom:1px solid rgba(255,255,255,0.08)}
-#data-status-bar .ds-item{display:flex;align-items:center;gap:5px;margin-bottom:3px}
-#data-status-bar .dot{width:7px;height:7px;border-radius:50%;background:#e74c3c}
-#data-status-bar .dot.ok{background:#27ae60}
-#sidebar nav{flex:1;padding:8px 0}
-.nav-group{margin-bottom:2px}
-.nav-label{font-size:9px;font-weight:700;color:#7a8fa8;letter-spacing:1px;text-transform:uppercase;padding:8px 14px 3px}
-.nav-item{display:flex;align-items:center;gap:9px;padding:7px 14px;cursor:pointer;font-size:12px;color:#c8d4e4;transition:background 0.15s;border-left:3px solid transparent}
-.nav-item:hover{background:rgba(255,255,255,0.07);color:#fff}
-.nav-item.active{background:rgba(255,255,255,0.12);color:#fff;border-left-color:#6fa3e0}
-.nav-item .ico{font-size:15px;width:18px;text-align:center}
-#sidebar-footer{padding:10px 14px;font-size:9px;color:#5a7090;border-top:1px solid rgba(255,255,255,0.08)}
-#refresh-btn{display:flex;align-items:center;gap:5px;margin-bottom:6px;background:rgba(255,255,255,0.08);border:none;color:#a0b0c8;padding:5px 8px;border-radius:4px;cursor:pointer;font-size:11px;width:100%}
-#refresh-btn:hover{background:rgba(255,255,255,0.14);color:#fff}
+/* ---------- Header ---------- */
+header.top{
+  background:linear-gradient(120deg, var(--ink) 0%, var(--ink-2) 55%, #0E4E63 100%);
+  color:#EAF3F2;
+  padding:22px clamp(16px,3vw,40px) 26px;
+  position:relative;
+  overflow:hidden;
+}
+header.top::after{
+  content:"";
+  position:absolute;
+  left:0; right:0; bottom:0;
+  height:4px;
+  background:linear-gradient(90deg, transparent, var(--teal) 20%, #6FE0D6 50%, var(--teal) 80%, transparent);
+  background-size:200% 100%;
+  animation:flow 5s linear infinite;
+}
+@keyframes flow{
+  0%{background-position:0% 0%;}
+  100%{background-position:200% 0%;}
+}
+.top-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  flex-wrap:wrap;
+  gap:16px;
+}
+.eyebrow{
+  font-size:11px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:#8FD8D1;
+  font-weight:600;
+  margin-bottom:6px;
+}
+h1{
+  margin:0;
+  font-family:'Space Grotesk', sans-serif;
+  font-weight:700;
+  font-size:clamp(22px,3vw,32px);
+  letter-spacing:-.01em;
+}
+.subtitle{
+  margin-top:6px;
+  font-size:13.5px;
+  color:#B9D6D2;
+  max-width:560px;
+  line-height:1.5;
+}
+.status-cluster{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  flex-wrap:wrap;
+}
+.live-pill{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.18);
+  padding:6px 12px 6px 10px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:.03em;
+}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--grey);flex:none;}
+.dot.on{background:#5CE0A0; box-shadow:0 0 0 3px rgba(92,224,160,.25); animation:pulse 2s infinite;}
+.dot.off{background:var(--alert);}
+@keyframes pulse{
+  0%,100%{box-shadow:0 0 0 3px rgba(92,224,160,.25);}
+  50%{box-shadow:0 0 0 6px rgba(92,224,160,.08);}
+}
+.sync-text{font-size:11.5px;color:#AECBC7;}
+button.refresh-btn{
+  background:var(--teal);
+  color:#04211E;
+  border:none;
+  font-weight:600;
+  font-size:13px;
+  padding:9px 16px;
+  border-radius:8px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  transition:transform .15s ease, background .15s ease;
+}
+button.refresh-btn:hover{background:#3FC5BA;}
+button.refresh-btn:active{transform:scale(.96);}
+button.refresh-btn.spinning svg{animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+label.auto-toggle{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:11.5px;
+  color:#B9D6D2;
+  cursor:pointer;
+  user-select:none;
+}
+input[type=checkbox]{accent-color:var(--teal);}
 
-/* MAIN */
-#main{flex:1;display:flex;flex-direction:column;overflow:hidden}
-#topbar{background:#fff;border-bottom:1px solid var(--border);padding:8px 18px;display:flex;align-items:center;gap:10px;min-height:50px;flex-wrap:wrap}
-#topbar h2{font-family:var(--font-serif);font-size:15px;color:var(--navy);font-weight:700;margin-right:auto}
-.export-btn{padding:5px 11px;font-size:11px;font-weight:600;border:1px solid var(--border);border-radius:4px;cursor:pointer;background:#fff;color:var(--gray);display:flex;align-items:center;gap:4px}
-.export-btn:hover{background:var(--gray4);border-color:#999}
-.export-btn.primary{background:var(--navy);color:#fff;border-color:var(--navy)}
-.export-btn.primary:hover{background:var(--navy2)}
+/* ---------- KPI strip ---------- */
+.kpi-strip{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:12px;
+  padding:20px clamp(16px,3vw,40px) 0;
+  max-width:1500px;
+  margin:0 auto;
+}
+@media(max-width:1100px){
+  .kpi-strip{grid-template-columns:repeat(2,1fr);}
+}
+@media(max-width:560px){
+  .kpi-strip{grid-template-columns:1fr;}
+}
+.kpi{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:15px 16px;
+  position:relative;
+  overflow:hidden;
+}
+.kpi .label{
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:var(--muted);
+  font-weight:600;
+}
+.kpi .value{
+  font-family:'Space Grotesk', sans-serif;
+  font-size:28px;
+  font-weight:700;
+  margin-top:4px;
+  color:var(--ink);
+}
+.kpi .value small{font-size:14px; font-weight:600; color:var(--muted);}
+.kpi .sub{font-size:11.5px; color:var(--muted); margin-top:2px;}
+.kpi.accent-alert .value{color:var(--alert);}
+.kpi.accent-success .value{color:var(--success);}
+.kpi.accent-teal .value{color:var(--teal-dark);}
 
-#content{flex:1;overflow-y:auto;padding:16px 18px}
+/* flow gauge (signature element) */
+.flow-gauge{
+  position:relative;
+  height:8px;
+  border-radius:999px;
+  background:var(--grey-light);
+  overflow:hidden;
+  margin-top:10px;
+}
+.flow-gauge .fill{
+  position:absolute; left:0; top:0; bottom:0;
+  border-radius:999px;
+  background-image:repeating-linear-gradient(-45deg, rgba(255,255,255,.35) 0 6px, rgba(255,255,255,0) 6px 12px), linear-gradient(90deg, var(--teal-dark), var(--teal));
+  background-size:170% 100%, 100% 100%;
+  animation:flowgauge 2.2s linear infinite;
+}
+@keyframes flowgauge{from{background-position:0 0,0 0;} to{background-position:34px 0,0 0;}}
+.flow-gauge.risk-atrisk .fill{background-image:repeating-linear-gradient(-45deg, rgba(255,255,255,.35) 0 6px, rgba(255,255,255,0) 6px 12px), linear-gradient(90deg,#A83228,var(--alert));}
+.flow-gauge.risk-completed .fill{background-image:repeating-linear-gradient(-45deg, rgba(255,255,255,.35) 0 6px, rgba(255,255,255,0) 6px 12px), linear-gradient(90deg,#166B4C,var(--success));}
+.flow-gauge.risk-unknown .fill{background-image:repeating-linear-gradient(-45deg, rgba(255,255,255,.3) 0 6px, rgba(255,255,255,0) 6px 12px), linear-gradient(90deg,#8892A0,var(--grey));}
+.flow-gauge.mini{height:6px;margin-top:0;width:78px;display:inline-block;vertical-align:middle;}
 
-/* FILTERS BAR */
-.filters-bar{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-bottom:14px;display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end}
-.filter-group{display:flex;flex-direction:column;gap:3px}
-.filter-group label{font-size:10px;font-weight:700;color:var(--gray2);text-transform:uppercase;letter-spacing:0.5px}
-.filter-group select,.filter-group input{font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:4px;color:var(--gray);background:#fff;min-width:120px}
-.filter-group input{min-width:180px}
-.filter-clear{font-size:11px;color:var(--blue);cursor:pointer;padding:5px 0;margin-top:14px;background:none;border:none}
-.filter-clear:hover{text-decoration:underline}
+/* ---------- Filter bar ---------- */
+.filter-bar{
+  max-width:1500px;
+  margin:18px auto 0;
+  padding:0 clamp(16px,3vw,40px);
+}
+.tab-pills{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:12px;
+}
+.tab-pill{
+  border:1px solid var(--line);
+  background:var(--surface);
+  padding:8px 14px;
+  border-radius:999px;
+  font-size:13px;
+  font-weight:600;
+  color:var(--muted);
+  cursor:pointer;
+  transition:.15s ease;
+}
+.tab-pill:hover{border-color:var(--teal);color:var(--teal-dark);}
+.tab-pill.active{
+  background:var(--ink);
+  border-color:var(--ink);
+  color:#fff;
+}
+.tab-pill .count{opacity:.7; font-weight:500; margin-left:4px;}
 
-/* KPI CARDS */
-.kpi-row{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
-.kpi-card{flex:1;min-width:110px;background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;border-top:3px solid var(--navy)}
-.kpi-card.good{border-top-color:var(--green)}
-.kpi-card.warn{border-top-color:var(--amber)}
-.kpi-card.danger{border-top-color:var(--red)}
-.kpi-card.info{border-top-color:var(--blue)}
-.kpi-val{font-size:24px;font-weight:700;color:var(--navy);line-height:1}
-.kpi-card.good .kpi-val{color:var(--green)}
-.kpi-card.warn .kpi-val{color:var(--amber)}
-.kpi-card.danger .kpi-val{color:var(--red)}
-.kpi-card.info .kpi-val{color:var(--blue)}
-.kpi-lbl{font-size:10px;color:var(--gray2);margin-top:4px;line-height:1.3}
-.kpi-sub{font-size:10px;color:var(--gray2);margin-top:2px}
-
-/* SECTION */
-.section{background:#fff;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:14px;overflow:hidden}
-.section-head{background:var(--navy);color:#fff;padding:8px 14px;display:flex;align-items:center;justify-content:space-between}
-.section-head h3{font-family:var(--font-serif);font-size:13px;font-weight:700}
-.section-head span{font-size:10px;color:#a0b0c8}
-.section-body{overflow-x:auto}
-
-/* TABLES */
-table{width:100%;border-collapse:collapse;font-size:11.5px}
-thead th{background:#2c3e6a;color:#fff;padding:7px 9px;text-align:left;font-weight:600;font-size:11px;white-space:nowrap;position:sticky;top:0}
-thead th.sortable{cursor:pointer;user-select:none}
-thead th .sort-ico{margin-left:3px;opacity:0.5;font-size:10px}
-tbody td{padding:6px 9px;border-bottom:1px solid var(--gray3);vertical-align:top}
-tbody tr:nth-child(even) td{background:var(--gray5)}
-tbody tr:hover td{background:#eef3fc}
-.table-empty{padding:20px;text-align:center;color:var(--gray2);font-style:italic}
-
-/* BADGES */
-.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;white-space:nowrap}
-.b-started{background:var(--green-bg);color:#1a5c2e}
-.b-willing{background:var(--amber-bg);color:#7d5a00}
-.b-notwilling{background:var(--red-bg);color:#7b1e24}
-.b-ext{background:var(--blue-bg);color:#1a3f6e}
-.b-gray{background:var(--gray3);color:var(--gray2)}
-.b-navy{background:#e3eaf7;color:var(--navy)}
-
-/* PROGRESS BAR */
-.prog-wrap{display:flex;align-items:center;gap:6px}
-.prog-bar{flex:1;height:8px;background:var(--gray3);border-radius:4px;overflow:hidden;min-width:60px}
-.prog-fill{height:100%;border-radius:4px;background:var(--green)}
-.prog-fill.warn{background:var(--amber)}
-.prog-fill.danger{background:var(--red)}
-.prog-pct{font-size:10px;font-weight:700;min-width:30px;text-align:right;color:var(--gray)}
-
-/* LOADING */
-#loading-overlay{position:fixed;inset:0;background:rgba(27,42,74,0.85);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff}
-#loading-overlay h2{font-family:var(--font-serif);font-size:18px;margin-bottom:10px}
-#loading-overlay p{font-size:12px;color:#a0b0c8}
-.spinner{width:36px;height:36px;border:3px solid rgba(255,255,255,0.2);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;margin-bottom:14px}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* ERROR */
-.err-box{background:#fff3f3;border:1px solid #f5c6cb;border-radius:var(--radius);padding:12px 16px;color:var(--red);font-size:12px;margin-bottom:10px}
-
-/* DRILLDOWN */
-.drilldown-row{background:#e8f0fb !important}
-.drilldown-row td{padding:0 !important;border-bottom:2px solid var(--navy) !important}
-.drilldown-inner{padding:10px 14px;font-size:11px}
-.drilldown-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px;margin-top:6px}
-.drilldown-item{background:#fff;border:1px solid var(--border);border-radius:4px;padding:6px 8px}
-.drilldown-item .di-label{font-size:10px;color:var(--gray2);font-weight:700}
-.drilldown-item .di-val{font-size:12px;color:var(--navy);font-weight:600;margin-top:1px}
-
-/* PIVOT TABLE */
-.pivot-wrap{overflow-x:auto}
-.pivot-table{border-collapse:collapse;font-size:11px;white-space:nowrap}
-.pivot-table th{background:#2c3e6a;color:#fff;padding:6px 9px;text-align:center;font-weight:600;font-size:10px}
-.pivot-table th.row-head{text-align:left}
-.pivot-table td{padding:5px 9px;border:1px solid var(--gray3);text-align:center}
-.pivot-table tr:nth-child(even) td{background:var(--gray5)}
-.pivot-table td.row-label{font-weight:600;color:var(--navy);text-align:left}
-.pivot-table td.total-col{background:#e8edf7;font-weight:700;color:var(--navy)}
-.pivot-table tr.total-row td{background:#2c3e6a;color:#fff;font-weight:700}
-
-/* COMPARISON BARS */
-.comp-section{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-@media(max-width:600px){.comp-section{grid-template-columns:1fr}}
-.comp-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:12px}
-.comp-card h4{font-family:var(--font-serif);font-size:13px;color:var(--navy);font-weight:700;border-bottom:2px solid var(--navy);padding-bottom:5px;margin-bottom:10px}
-
-/* ========== MOBILE RESPONSIVE ========== */
-@media(max-width:768px){
-  body{flex-direction:column}
-  #sidebar{width:100%;min-width:100%;max-height:auto;overflow-y:visible;display:none;position:fixed;left:0;top:0;height:100%;z-index:100;overflow-y:auto}
-  #sidebar.mobile-open{display:flex}
-  #main{width:100%;height:100vh;overflow:hidden}
-  #topbar{min-height:45px;padding:8px 12px;gap:6px}
-  #topbar h2{font-size:13px;margin-right:0;order:2;flex:1}
-  #menu-toggle{display:flex;align-items:center;gap:4px;background:var(--navy);color:#fff;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;font-size:14px;order:1}
-  #content{padding:12px;overflow-y:auto}
-  
-  .kpi-row{gap:8px}
-  .kpi-card{min-width:90px;padding:8px 10px}
-  .kpi-val{font-size:20px}
-  .kpi-lbl{font-size:9px}
-  .kpi-sub{font-size:9px}
-  
-  .filters-bar{padding:8px 10px;gap:6px}
-  .filter-group{min-width:100px}
-  .filter-group select,.filter-group input{font-size:11px;padding:4px 6px;min-width:100px}
-  .filter-group input{min-width:140px}
-  .filter-clear{padding:3px 0;font-size:10px;margin-top:10px}
-  
-  .section-head h3{font-size:12px}
-  .section-head span{font-size:9px}
-  table{font-size:10px}
-  thead th{padding:5px 6px;font-size:10px}
-  tbody td{padding:5px 6px}
-  
-  .export-btn{padding:4px 8px;font-size:10px;gap:2px}
-  .export-btn.primary{padding:4px 8px;font-size:10px}
-  
-  .comp-section{gap:10px;margin-bottom:10px}
-  .comp-card{padding:10px}
-  .comp-card h4{font-size:12px;padding-bottom:4px;margin-bottom:8px}
-  
-  .badge{font-size:9px;padding:2px 6px}
-  .prog-wrap{gap:4px}
-  .prog-pct{font-size:9px;min-width:28px}
+.filter-row{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:12px 14px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  align-items:center;
+}
+.filter-row select, .filter-row input[type=text]{
+  font-family:inherit;
+  font-size:13px;
+  padding:8px 10px;
+  border-radius:7px;
+  border:1px solid var(--line);
+  background:#FBFDFC;
+  color:var(--text);
+  min-width:140px;
+}
+.filter-row input[type=text]{min-width:220px; flex:1;}
+.filter-row select:focus, .filter-row input:focus{outline:2px solid var(--teal); outline-offset:1px;}
+.clear-btn{
+  font-size:12.5px;
+  color:var(--teal-dark);
+  background:none;
+  border:none;
+  cursor:pointer;
+  font-weight:600;
+  padding:8px 4px;
+}
+.result-count{
+  font-size:12.5px;
+  color:var(--muted);
+  margin-left:auto;
+  white-space:nowrap;
 }
 
-@media(max-width:480px){
-  #topbar{min-height:40px;padding:6px 8px}
-  #topbar h2{font-size:12px}
-  #menu-toggle{font-size:12px;padding:4px 8px}
-  
-  .kpi-row{gap:6px;margin-bottom:10px}
-  .kpi-card{min-width:80px;padding:6px 8px}
-  .kpi-val{font-size:18px}
-  .kpi-lbl{font-size:8px;margin-top:2px}
-  
-  .filters-bar{flex-direction:column;padding:6px 8px;gap:4px}
-  .filter-group{width:100%;min-width:auto}
-  .filter-group select,.filter-group input{width:100%;min-width:auto;font-size:11px}
-  .filter-clear{font-size:9px;margin-top:8px}
-  
-  .section-head{padding:6px 10px;flex-direction:column;align-items:flex-start;gap:2px}
-  .section-head h3{font-size:11px}
-  .section-head span{font-size:8px}
-  
-  table{font-size:9px}
-  thead th{padding:4px 4px;font-size:9px}
-  tbody td{padding:4px 4px}
-  
-  .export-btn{padding:3px 6px;font-size:9px;gap:2px}
-  
-  .comp-card{padding:8px}
-  .comp-card h4{font-size:11px}
-  
-  .badge{font-size:8px;padding:1px 5px}
-  .prog-pct{font-size:8px;min-width:25px}
+/* ---------- Export section ---------- */
+.export-section{
+  max-width:1500px;
+  margin:18px auto 0;
+  padding:0 clamp(16px,3vw,40px);
 }
+.export-card{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:14px 16px;
+}
+.export-title{
+  font-size:12.5px;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  color:var(--ink-2);
+  font-weight:700;
+  margin-bottom:12px;
+}
+.export-buttons{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.export-btn{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:12.5px;
+  font-weight:600;
+  padding:8px 12px;
+  border-radius:7px;
+  border:1px solid var(--line);
+  background:var(--surface);
+  cursor:pointer;
+  transition:.15s ease;
+  color:var(--text);
+}
+.export-btn:hover{
+  background:var(--teal-light);
+  border-color:var(--teal-dark);
+  color:var(--teal-dark);
+}
+.export-btn svg{width:14px; height:14px;}
 
-/* PRINT */
-@media print{
-  #sidebar,#topbar .export-btn,#filters-bar,.filter-group,#loading-overlay,#menu-toggle{display:none!important}
-  body{background:#fff;display:block;height:auto;overflow:visible;flex-direction:column}
-  #main{width:100%;overflow:visible;height:auto}
-  #content{overflow:visible;padding:0}
-  .section{page-break-inside:avoid;border:1px solid #ccc}
-  .kpi-card{border:1px solid #ccc}
+/* ---------- Charts ---------- */
+.charts-row{
+  max-width:1500px;
+  margin:18px auto 0;
+  padding:0 clamp(16px,3vw,40px);
+  display:grid;
+  grid-template-columns:340px 1fr 1fr;
+  gap:12px;
 }
+@media(max-width:980px){
+  .charts-row{grid-template-columns:1fr;}
+}
+.card{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:16px 18px 18px;
+}
+.card h3{
+  margin:0 0 12px;
+  font-size:13px;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  color:var(--ink-2);
+  font-weight:700;
+}
+.legend{display:flex; gap:14px; flex-wrap:wrap; margin-top:10px; font-size:12px; color:var(--muted);}
+.legend span{display:inline-flex; align-items:center; gap:5px;}
+.legend i{width:9px;height:9px;border-radius:2px;display:inline-block;}
+
+/* ---------- Table ---------- */
+.table-wrap{
+  max-width:1500px;
+  margin:18px auto 40px;
+  padding:0 clamp(16px,3vw,40px);
+}
+.table-card{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  overflow:hidden;
+}
+.table-scroll{
+  overflow:auto;
+  max-height:640px;
+}
+table{
+  border-collapse:collapse;
+  width:100%;
+  font-size:12.8px;
+}
+thead th{
+  position:sticky; top:0; z-index:2;
+  background:var(--ink);
+  color:#EAF3F2;
+  text-align:left;
+  padding:10px 12px;
+  font-weight:600;
+  font-size:11.3px;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+  cursor:pointer;
+  white-space:nowrap;
+  user-select:none;
+}
+thead th:hover{background:var(--ink-2);}
+thead th .arrow{opacity:.55; font-size:10px; margin-left:3px;}
+tbody td{
+  padding:9px 12px;
+  border-bottom:1px solid var(--line);
+  vertical-align:top;
+  white-space:nowrap;
+}
+tbody td.wrap{white-space:normal; max-width:230px;}
+tbody tr:hover{background:#F5FAF9;}
+tbody tr.expand-row td{white-space:normal; background:#FAFCFB;}
+.badge{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  padding:3px 9px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.02em;
+}
+.badge.ontrack{background:var(--success-light); color:#146B48;}
+.badge.atrisk{background:var(--alert-light); color:#A5352C;}
+.badge.completed{background:var(--teal-light); color:var(--teal-dark);}
+.badge.unknown{background:var(--grey-light); color:var(--muted);}
+.tab-tag{
+  font-size:10.3px;
+  font-weight:600;
+  color:var(--muted);
+  border:1px solid var(--line);
+  padding:2px 6px;
+  border-radius:5px;
+}
+.expand-toggle{
+  cursor:pointer;
+  color:var(--teal-dark);
+  font-weight:700;
+  border:none;
+  background:none;
+  font-size:14px;
+  padding:0 4px;
+}
+.empty-state{
+  padding:60px 20px;
+  text-align:center;
+  color:var(--muted);
+}
+.error-banner{
+  max-width:1500px;
+  margin:14px auto 0;
+  padding:12px 16px;
+  background:var(--alert-light);
+  border:1px solid #F0BDB7;
+  color:#8C2C23;
+  border-radius:8px;
+  font-size:13px;
+  display:none;
+}
+.error-banner.show{display:flex; justify-content:space-between; align-items:center; gap:12px; margin-left:auto; margin-right:auto;}
+.error-banner button{
+  background:#8C2C23; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer; font-weight:600;
+}
+footer{
+  text-align:center;
+  font-size:11.5px;
+  color:var(--muted);
+  padding:10px 20px 34px;
+}
+::-webkit-scrollbar{height:9px; width:9px;}
+::-webkit-scrollbar-thumb{background:#C4D2CF; border-radius:6px;}
 </style>
 </head>
 <body>
 
-<div id="loading-overlay">
-  <div class="spinner"></div>
-  <h2>Loading CIRP Data...</h2>
-  <p id="load-msg">Fetching spreadsheet data...</p>
+<header class="top">
+  <div class="top-row">
+    <div>
+      <div class="eyebrow">Public Health Engineering | Assam &nbsp;|&nbsp; JJM 2.0</div>
+      <h1>CIRP -- Timeline Matrix <span style="font-size:0.5em; font-weight:600; color:#8FD8D1;">| Tinsukia Division</span></h1>
+      <div class="subtitle">Live contractor implementation review --  &amp; financial progress against NJJM deadlines across PWSS and MVS schemes, filtered to Tinsukia Division only.</div>
+    </div>
+    <div class="status-cluster">
+      <label class="auto-toggle">
+        <input type="checkbox" id="autoRefreshToggle" checked>
+        Auto-refresh (2 min)
+      </label>
+      <div class="live-pill">
+        <span class="dot on" id="liveDot"></span>
+        <span id="liveText">LIVE</span>
+      </div>
+      <span class="sync-text" id="syncText">Loading...</span>
+      <button class="refresh-btn" id="refreshBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>
+        Refresh
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="error-banner" id="errorBanner">
+  <span id="errorText"></span>
+  <button id="errorRetry">Retry</button>
 </div>
 
-<!-- SIDEBAR -->
-<div id="sidebar">
-  <div id="sidebar-header">
-    <h1>CIRP MIS Dashboard</h1>
-    <p>Tinsukia Division &bull; NJJM Schemes</p>
-  </div>
-  <div id="data-status-bar">
-    <div class="ds-item"><span class="dot" id="dot-t"></span><span id="status-t">Tinsukia: loading...</span></div>
-    <div class="ds-item"><span class="dot" id="dot-d"></span><span id="status-d">Digboi: loading...</span></div>
-  </div>
-  <nav>
-    <div class="nav-group">
-      <div class="nav-label">Overview</div>
-      <div class="nav-item active" onclick="showPage('dashboard');closeMobileMenu()" id="nav-dashboard">
-        <span class="ico">&#9632;</span> Executive Dashboard
-      </div>
-    </div>
-    <div class="nav-group">
-      <div class="nav-label">Reports</div>
-      <div class="nav-item" onclick="showPage('r1');closeMobileMenu()" id="nav-r1">
-        <span class="ico">&#9654;</span> Work Started Status
-      </div>
-      <div class="nav-item" onclick="showPage('r2');closeMobileMenu()" id="nav-r2">
-        <span class="ico">&#9654;</span> Contractor Wise
-      </div>
-      <div class="nav-item" onclick="showPage('r3');closeMobileMenu()" id="nav-r3">
-        <span class="ico">&#9654;</span> Combined Division
-      </div>
-      <div class="nav-item" onclick="showPage('r4');closeMobileMenu()" id="nav-r4">
-        <span class="ico">&#9654;</span> Delay Analysis
-      </div>
-      <div class="nav-item" onclick="showPage('r5');closeMobileMenu()" id="nav-r5">
-        <span class="ico">&#9654;</span> Scheme Tracker
-      </div>
-      <div class="nav-item" onclick="showPage('r6');closeMobileMenu()" id="nav-r6">
-        <span class="ico">&#9654;</span> Extension Pivot
-      </div>
-      <div class="nav-item" onclick="showPage('r7');closeMobileMenu()" id="nav-r7">
-        <span class="ico">&#9654;</span> Pending Actions
-      </div>
-    </div>
-    <div class="nav-group">
-      <div class="nav-label">Search</div>
-      <div class="nav-item" onclick="showPage('search');closeMobileMenu()" id="nav-search">
-        <span class="ico">&#9654;</span> Scheme Register
-      </div>
-    </div>
-  </nav>
-  <div id="sidebar-footer">
-    <button id="refresh-btn" onclick="loadData()">&#8635; Refresh Data</button>
-    <div id="last-updated">Not yet loaded</div>
+<div class="kpi-strip" id="kpiStrip"></div>
+
+<div class="filter-bar">
+  <div class="tab-pills" id="tabPills"></div>
+  <div class="filter-row">
+    <select id="fDivision"><option value="">All divisions</option></select>
+    <select id="fStatus"><option value="">All scheme status</option></select>
+    <select id="fRisk">
+      <option value="">All confidence</option>
+      <option value="ontrack">On track (Yes)</option>
+      <option value="atrisk">At risk (No)</option>
+      <option value="completed">Completed</option>
+      <option value="unknown">Not specified</option>
+    </select>
+    <select id="fIssue"><option value="">All issue groups</option></select>
+    <select id="fSOName"><option value="">All SO Names</option></select>
+    <select id="fSubDiv"><option value="">All Sub-Divisions</option></select>
+    <select id="fLAC"><option value="">All LACs</option></select>
+    <input type="text" id="fSearch" placeholder="Search scheme name, ID or division...">
+    <button class="clear-btn" id="clearFilters">Clear filters</button>
+    <span class="result-count" id="resultCount"></span>
   </div>
 </div>
 
-<!-- MAIN -->
-<div id="main">
-  <div id="topbar">
-    <button id="menu-toggle" onclick="toggleMobileMenu()" style="display:none">☰ Menu</button>
-    <h2 id="page-title">Executive Dashboard</h2>
-    <button class="export-btn" onclick="exportCSV()">&#8595; CSV</button>
-    <button class="export-btn" onclick="exportExcel()">&#8595; Excel</button>
-    <button class="export-btn primary" onclick="window.print()">&#128438; Print</button>
-  </div>
-  <div id="content">
-    <div id="err-area"></div>
-    <div id="page-dashboard" class="page"></div>
-    <div id="page-r1" class="page" style="display:none"></div>
-    <div id="page-r2" class="page" style="display:none"></div>
-    <div id="page-r3" class="page" style="display:none"></div>
-    <div id="page-r4" class="page" style="display:none"></div>
-    <div id="page-r5" class="page" style="display:none"></div>
-    <div id="page-r6" class="page" style="display:none"></div>
-    <div id="page-r7" class="page" style="display:none"></div>
-    <div id="page-search" class="page" style="display:none"></div>
+<div class="export-section">
+  <div class="export-card">
+    <div class="export-title">Export Filtered Data</div>
+    <div class="export-buttons" id="exportButtons"></div>
   </div>
 </div>
+
+<div class="charts-row">
+  <div class="card">
+    <h3>Confidence Distribution</h3>
+    <div id="donutChart"></div>
+    <div class="legend" id="donutLegend"></div>
+  </div>
+  <div class="card">
+    <h3>Divisions -- Scheme Count &amp; Risk Mix (Top 10)</h3>
+    <div id="barChart"></div>
+  </div>
+  <div class="card">
+    <h3>NJJM Target Completion Period</h3>
+    <div id="periodChart"></div>
+  </div>
+</div>
+
+<div class="table-wrap">
+  <div class="table-card">
+    <div class="table-scroll">
+      <table id="dataTable">
+        <thead>
+          <tr id="headRow"></tr>
+        </thead>
+        <tbody id="bodyRows"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Source: Google Sheet "CIRP - Timeline Matrix" (live) | Refreshed automatically from published tabs New SVS-PWSS, New MVS, New MVS (Q&amp;Q) | Filtered to Division Name = Tinsukia | Built for CIRP monitoring
+</footer>
 
 <script>
-const SHEET_ID='1ERAuF2FpayDq1l4APo_Oh_1ER3bES6LjFkm848sruTg';
-const SHEETS={
-  tinsukia:{gid:'1373661463',label:'Tinsukia'},
-  digboi:{gid:'0',label:'Digboi'}
-};
-const COL={SN:0,SUBDIV:1,SO:2,SCHEMEID:3,SCHEMENAME:4,NJJMDATE:5,EXTDATE:6,TENTDATE:7,STATUS:8,TYPE1:9,TYPE2:10,CONTRACTOR:14};
+const SHEET_ID = "1e5-DMSWzGL8MUNVFiqrbG9PV0s4zJ2ywEATOrrUUoDY";
+const IMIS_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwCZb7LO3b1KMda5osejVObaQuYwbz4pak7tiH4tjiVLe9zg7UiHyb4lPqVqdFCtPm22N8k3vtYSOX/pub?gid=0&single=true&output=csv";
 
-let DATA={tinsukia:[],digboi:[]};
-let currentPage='dashboard';
-let sortState={col:-1,dir:1};
+const TABS = [
+  {key:"pwss",  name:"New SVS - PWSS",  short:"PWSS (SVS)", gid:"700142457"},
+  {key:"mvs",   name:"New MVS",         short:"MVS",        gid:"1174022611"},
+  {key:"mvsqq", name:"New MVS (Q&Q)",   short:"MVS (Q&Q)",  gid:"808219995"}
+];
 
-function toggleMobileMenu(){
-  const sidebar=document.getElementById('sidebar');
-  sidebar.classList.toggle('mobile-open');
+const TARGET_DIVISION = "tinsukia";
+
+let allRows = [];
+let imisData = {};
+let activeTab = "all";
+let sortState = {col:null, dir:1};
+let expandedKey = null;
+let autoRefreshTimer = null;
+
+function csvUrl(tab){
+  return [
+    `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab.name)}`,
+    `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${tab.gid}`
+  ];
 }
 
-function closeMobileMenu(){
-  const sidebar=document.getElementById('sidebar');
-  sidebar.classList.remove('mobile-open');
-}
-
-function checkMobileView(){
-  const toggle=document.getElementById('menu-toggle');
-  if(window.innerWidth<=768){
-    toggle.style.display='flex';
-  }else{
-    toggle.style.display='none';
-    closeMobileMenu();
+async function fetchCSVText(url){
+  let lastErr;
+  const urls = Array.isArray(url) ? url : [url];
+  for(const u of urls){
+    try{
+      const res = await fetch(u, {cache:"no-store"});
+      if(!res.ok) throw new Error("HTTP "+res.status);
+      const text = await res.text();
+      if(!text || text.trim().toLowerCase().startsWith("<!doctype") || text.trim().startsWith("<html")){
+        throw new Error("Non-CSV response");
+      }
+      return text;
+    }catch(e){ lastErr = e; }
   }
+  throw lastErr;
 }
 
-window.addEventListener('resize',checkMobileView);
-window.addEventListener('load',()=>{
-  checkMobileView();
-  loadData();
-});
-
-async function loadData(){
-  showLoading(true,'Fetching spreadsheet data...');
+async function loadIMISData(){
   try{
-    setMsg('Loading Tinsukia sheet...');
-    DATA.tinsukia=await fetchSheet(SHEETS.tinsukia.gid,'tinsukia');
-    setDotStatus('t',DATA.tinsukia.length);
-    setMsg('Loading Digboi sheet...');
-    DATA.digboi=await fetchSheet(SHEETS.digboi.gid,'digboi');
-    setDotStatus('d',DATA.digboi.length);
-    document.getElementById('last-updated').textContent='Updated: '+new Date().toLocaleTimeString('en-IN');
-    showLoading(false);
-    renderCurrentPage();
-  }catch(e){
-    showLoading(false);
-    showErr('Failed to load data: '+e.message+'. Check your internet connection, or make sure the sheet is shared as "Anyone with the link can view", then try refreshing.');
+    const text = await fetchCSVText(IMIS_SHEET_URL);
+    const parsed = Papa.parse(text, {skipEmptyLines:false});
+    const rows = parsed.data;
+    imisData = {};
+    rows.forEach(r=>{
+      const schemeId = (r[0]||"").trim();
+      if(schemeId && schemeId.toLowerCase() !== "imis scheme id"){
+        imisData[schemeId] = {
+          soName: (r[1]||"").trim(),
+          subDivision: (r[2]||"").trim(),
+          lac: (r[3]||"").trim()
+        };
+      }
+    });
+    console.log("IMIS data loaded:", Object.keys(imisData).length, "records");
+  }catch(err){
+    console.error("Failed to load IMIS data:", err);
   }
 }
 
-async function fetchSheet(gid,sheet){
-  const json=await fetchGvizJSON(gid);
-  return parseGviz(json,sheet);
+function normRisk(conf){
+  if(!conf) return "unknown";
+  const c = conf.trim().toLowerCase();
+  if(c.includes("completed")) return "completed";
+  if(c === "yes") return "ontrack";
+  if(c === "no") return "atrisk";
+  return "unknown";
+}
+function riskLabel(r){
+  return {ontrack:"Yes", atrisk:"No", completed:"Completed", unknown:"--"}[r] || "--";
 }
 
-function fetchGvizJSON(gid){
-  return new Promise((resolve,reject)=>{
-    const cbName='__gvizCB_'+gid+'_'+Date.now()+'_'+Math.floor(Math.random()*1e6);
-    const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?gid=${gid}&tqx=out:json;responseHandler:${cbName}`;
-    const script=document.createElement('script');
-    let settled=false;
-    const timer=setTimeout(()=>{
-      if(settled) return;
-      settled=true;
-      cleanup();
-      reject(new Error(`Timed out loading sheet (gid ${gid})`));
-    },15000);
-    function cleanup(){
-      delete window[cbName];
-      if(script.parentNode) script.parentNode.removeChild(script);
-      clearTimeout(timer);
-    }
-    window[cbName]=function(data){
-      if(settled) return;
-      settled=true;
-      cleanup();
-      resolve(data);
-    };
-    script.onerror=function(){
-      if(settled) return;
-      settled=true;
-      cleanup();
-      reject(new Error(`Failed to load sheet (gid ${gid}). Check the sheet is shared publicly.`));
-    };
-    script.src=url;
-    document.head.appendChild(script);
-  });
-}
+function parseTab(csvText, tab){
+  const parsed = Papa.parse(csvText, {skipEmptyLines:false});
+  const rows = parsed.data;
+  let headerIdx = -1;
+  for(let i=0;i<rows.length;i++){
+    const joined = rows[i].join("|").toLowerCase();
+    if(joined.includes("sno") && joined.includes("division name")){ headerIdx = i; break; }
+  }
+  if(headerIdx === -1) return [];
+  const out = [];
+  for(let i=headerIdx+1;i<rows.length;i++){
+    const r = rows[i];
+    if(!r || r.length < 4) continue;
+    const division = (r[1]||"").trim();
+    const schemeName = (r[3]||"").trim();
+    const sno = (r[0]||"").trim();
+    const schemeId = (r[2]||"").trim();
+    if(!division && !schemeName) continue;
+    if(!sno || isNaN(parseInt(sno,10))) continue;
 
-function parseGviz(json,sheet){
-  const rows=[];
-  if(!json||!json.table||!Array.isArray(json.table.rows)) return rows;
-  json.table.rows.forEach(r=>{
-    const raw=(r.c||[]).map(cell=>{
-      if(!cell) return '';
-      if(cell.f!==undefined&&cell.f!==null) return String(cell.f).trim();
-      if(cell.v===null||cell.v===undefined) return '';
-      return String(cell.v).trim();
+    const normDivision = division.replace(/\s+/g, " ").trim().toLowerCase();
+    if(!normDivision.includes(TARGET_DIVISION)) continue;
+
+    const finPctRaw = (r[5]||"").trim();
+    const finPct = finPctRaw === "" ? null : parseFloat(finPctRaw.replace(/[^\d.\-]/g,""));
+    const confRaw = (r[7]||"").trim();
+    
+    const imis = imisData[schemeId] || {};
+    out.push({
+      tabKey: tab.key,
+      tabShort: tab.short,
+      sno: sno,
+      division: division || "(Unspecified)",
+      schemeId: schemeId,
+      schemeName: schemeName || "(Unnamed scheme)",
+      status: (r[4]||"").trim(),
+      finPct: finPct,
+      njjmDate: (r[6]||"").trim(),
+      confidenceRaw: confRaw,
+      risk: normRisk(confRaw),
+      issueGroup: (r[8]||"").trim(),
+      reason: (r[9]||"").trim(),
+      suggestions: (r[10]||"").trim(),
+      tentativeDate: (r[11]||"").trim(),
+      soName: imis.soName || "--",
+      subDivision: imis.subDivision || "--",
+      lac: imis.lac || "--",
+      key: tab.key + "-" + sno + "-" + schemeId
     });
-    if(raw.length>3) rows.push({raw,sheet});
-  });
-  return rows;
+  }
+  return out;
 }
 
-function get(row,col){return(row.raw[col]||'').trim();}
-
-function classifyStatus(s){
-  if(!s) return 'unknown';
-  const sl=s.toLowerCase();
-  if(sl.includes('not willing')||sl.includes('unwilling')) return 'notwilling';
-  if(sl.includes('willing')) return 'willing';
-  if(sl.includes('started')) return 'started';
-  return 'unknown';
+async function loadAll(userTriggered){
+  const btn = document.getElementById("refreshBtn");
+  btn.classList.add("spinning");
+  setLive(null);
+  try{
+    await loadIMISData();
+    const results = await Promise.all(TABS.map(async t=>{
+      const text = await fetchCSVText(csvUrl(t));
+      return parseTab(text, t);
+    }));
+    allRows = results.flat();
+    document.getElementById("errorBanner").classList.remove("show");
+    setLive(true);
+    if(allRows.length === 0){
+      console.warn("No rows matched TARGET_DIVISION");
+    }
+    render();
+  }catch(err){
+    setLive(false);
+    const banner = document.getElementById("errorBanner");
+    document.getElementById("errorText").textContent = "Live data unavailable (" + err.message + "). " + (allRows.length ? "Showing last load." : 'Check sharing.');
+    banner.classList.add("show");
+    if(allRows.length) render();
+  }finally{
+    btn.classList.remove("spinning");
+    document.getElementById("syncText").textContent = "Last updated " + new Date().toLocaleTimeString();
+  }
 }
 
-function statusBadge(s){
-  const c=classifyStatus(s);
-  if(c==='started') return '<span class="badge b-started">Started</span>';
-  if(c==='willing') return '<span class="badge b-willing">Willing / Not Started</span>';
-  if(c==='notwilling') return '<span class="badge b-notwilling">Not Willing</span>';
-  return '<span class="badge b-gray">—</span>';
+function setLive(ok){
+  const dot = document.getElementById("liveDot");
+  const txt = document.getElementById("liveText");
+  if(ok === null){ dot.className="dot"; txt.textContent="SYNCING"; }
+  else if(ok){ dot.className="dot on"; txt.textContent="LIVE"; }
+  else{ dot.className="dot off"; txt.textContent="OFFLINE"; }
 }
 
-function parseDate(d){
-  if(!d) return null;
-  const p=new Date(d);
-  return isNaN(p.getTime())?null:p;
+/* Filters */
+function getFilterState(){
+  return {
+    tab: activeTab,
+    division: document.getElementById("fDivision").value,
+    status: document.getElementById("fStatus").value,
+    risk: document.getElementById("fRisk").value,
+    issue: document.getElementById("fIssue").value,
+    soName: document.getElementById("fSOName").value,
+    subDiv: document.getElementById("fSubDiv").value,
+    lac: document.getElementById("fLAC").value,
+    search: document.getElementById("fSearch").value.trim().toLowerCase()
+  };
 }
 
-function fmtDate(d){
-  if(!d) return '—';
-  const p=parseDate(d);
-  if(!p) return d;
-  return p.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
-}
-
-function fmtMonthYear(d){
-  if(!d) return '—';
-  const p=parseDate(d);
-  if(!p) return d;
-  return p.toLocaleDateString('en-IN',{month:'short',year:'numeric'});
-}
-
-function monthsBetween(a,b){
-  if(!a||!b) return null;
-  return(b.getFullYear()-a.getFullYear())*12+(b.getMonth()-a.getMonth());
-}
-
-function allRows(){return[...DATA.tinsukia,...DATA.digboi];}
-
-function filterRows(rows,filters={}){
+function applyFilters(rows){
+  const f = getFilterState();
   return rows.filter(r=>{
-    if(filters.subdiv&&filters.subdiv!=='all'){
-      const sd=(get(r,COL.SUBDIV)||r.sheet).toLowerCase();
-      if(!sd.includes(filters.subdiv.toLowerCase())) return false;
-    }
-    if(filters.sheet&&filters.sheet!=='all'&&r.sheet!==filters.sheet) return false;
-    if(filters.status&&filters.status!=='all'&&classifyStatus(get(r,COL.STATUS))!==filters.status) return false;
-    if(filters.contractor&&filters.contractor.trim()){
-      const c=get(r,COL.CONTRACTOR).toLowerCase();
-      if(!c.includes(filters.contractor.toLowerCase())) return false;
-    }
-    if(filters.search&&filters.search.trim()){
-      const q=filters.search.toLowerCase();
-      const searchable=(get(r,COL.SCHEMENAME)+get(r,COL.SCHEMEID)+get(r,COL.CONTRACTOR)+get(r,COL.SO)).toLowerCase();
-      if(!searchable.includes(q)) return false;
-    }
-    if(filters.extMonth&&filters.extMonth!=='all'){
-      if(fmtMonthYear(get(r,COL.EXTDATE))!==filters.extMonth) return false;
+    if(f.tab !== "all" && r.tabKey !== f.tab) return false;
+    if(f.division && r.division !== f.division) return false;
+    if(f.status && r.status !== f.status) return false;
+    if(f.risk && r.risk !== f.risk) return false;
+    if(f.issue && r.issueGroup !== f.issue) return false;
+    if(f.soName && r.soName !== f.soName) return false;
+    if(f.subDiv && r.subDivision !== f.subDiv) return false;
+    if(f.lac && r.lac !== f.lac) return false;
+    if(f.search){
+      const hay = (r.schemeName+" "+r.schemeId+" "+r.division).toLowerCase();
+      if(!hay.includes(f.search)) return false;
     }
     return true;
   });
 }
 
-function kpiCard(val,lbl,cls='',sub=''){
-  return `<div class="kpi-card ${cls}"><div class="kpi-val">${val}</div><div class="kpi-lbl">${lbl}</div>${sub?`<div class="kpi-sub">${sub}</div>`:''}</div>`;
-}
-
-function sectionWrap(title,subtitle,innerHTML){
-  return `<div class="section"><div class="section-head"><h3>${title}</h3><span>${subtitle||''}</span></div><div class="section-body">${innerHTML}</div></div>`;
-}
-
-function filtersBar(id,opts={}){
-  const all=allRows();
-  const subdivs=[...new Set(all.map(r=>get(r,COL.SUBDIV)||r.sheet))].filter(Boolean).sort();
-  const contractors=[...new Set(all.map(r=>get(r,COL.CONTRACTOR)))].filter(Boolean).sort();
-  const extMonths=[...new Set(all.map(r=>fmtMonthYear(get(r,COL.EXTDATE))))].filter(s=>s&&s!=='—').sort();
-  let html=`<div class="filters-bar" id="${id}">`;
-  if(opts.sheet!==false) html+=`<div class="filter-group"><label>Sheet</label><select id="${id}-sheet" onchange="renderCurrentPage()"><option value="all">Both Sheets</option><option value="tinsukia">Tinsukia</option><option value="digboi">Digboi</option></select></div>`;
-  if(opts.subdiv!==false) html+=`<div class="filter-group"><label>Sub-Division</label><select id="${id}-subdiv" onchange="renderCurrentPage()"><option value="all">All</option>${subdivs.map(s=>`<option>${s}</option>`).join('')}</select></div>`;
-  if(opts.status!==false) html+=`<div class="filter-group"><label>Work Status</label><select id="${id}-status" onchange="renderCurrentPage()"><option value="all">All Status</option><option value="started">Started</option><option value="willing">Willing / Not Started</option><option value="notwilling">Not Willing</option></select></div>`;
-  if(opts.extMonth) html+=`<div class="filter-group"><label>Extension Month</label><select id="${id}-extMonth" onchange="renderCurrentPage()"><option value="all">All Months</option>${extMonths.map(m=>`<option>${m}</option>`).join('')}</select></div>`;
-  if(opts.contractor) html+=`<div class="filter-group"><label>Contractor</label><input id="${id}-contractor" placeholder="Search contractor..." oninput="renderCurrentPage()"></div>`;
-  if(opts.search) html+=`<div class="filter-group"><label>Search</label><input id="${id}-search" placeholder="Scheme, ID, SO..." oninput="renderCurrentPage()"></div>`;
-  if(opts.minDelay) html+=`<div class="filter-group"><label>Min Delay (months)</label><input type="number" id="${id}-minDelay" value="0" min="0" style="width:80px" oninput="renderCurrentPage()"></div>`;
-  html+=`<button class="filter-clear" onclick="clearFilters('${id}')">Clear Filters</button></div>`;
-  return html;
-}
-
-function getFilterVals(id,opts={}){
-  const g=n=>{const el=document.getElementById(n);return el?el.value||'':'';};
-  return{
-    sheet:g(`${id}-sheet`),
-    subdiv:g(`${id}-subdiv`),
-    status:g(`${id}-status`),
-    extMonth:g(`${id}-extMonth`),
-    contractor:g(`${id}-contractor`),
-    search:g(`${id}-search`),
-    minDelay:parseInt(g(`${id}-minDelay`))||0,
-  };
-}
-
-function clearFilters(id){
-  document.querySelectorAll(`#${id} select`).forEach(s=>s.selectedIndex=0);
-  document.querySelectorAll(`#${id} input`).forEach(i=>i.value='');
-  renderCurrentPage();
-}
-
-function renderDashboard(){
-  const all=allRows();
-  if(!all.length){document.getElementById('page-dashboard').innerHTML='<div class="err-box">No data loaded yet.</div>';return;}
+function populateFilterOptions(){
+  const divisions = [...new Set(allRows.map(r=>r.division))].sort();
+  const statuses = [...new Set(allRows.map(r=>r.status).filter(Boolean))].sort();
+  const issues = [...new Set(allRows.map(r=>r.issueGroup).filter(Boolean))].sort();
+  const soNames = [...new Set(allRows.map(r=>r.soName).filter(s=>s!=="--"))].sort();
+  const subDivs = [...new Set(allRows.map(r=>r.subDivision).filter(s=>s!=="--"))].sort();
+  const lacs = [...new Set(allRows.map(r=>r.lac).filter(l=>l!=="--"))].sort();
   
-  const t=DATA.tinsukia,d=DATA.digboi;
-  const cs=r=>classifyStatus(get(r,COL.STATUS));
-  const ts=t.filter(r=>cs(r)==='started').length,ds=d.filter(r=>cs(r)==='started').length;
-  const tw=t.filter(r=>cs(r)==='willing').length,dw=d.filter(r=>cs(r)==='willing').length;
-  const tn=t.filter(r=>cs(r)==='notwilling').length,dn=d.filter(r=>cs(r)==='notwilling').length;
-  const totalS=ts+ds,totalW=tw+dw,totalN=tn+dn,total=all.length;
-  const pct=n=>total?Math.round(n/total*100):0;
-  
-  const contractorSet=new Set();
-  all.forEach(r=>{
-    const contractor=get(r,COL.CONTRACTOR);
-    if(contractor&&contractor.trim()&&contractor!=='—'){
-      contractorSet.add(contractor.trim());
-    }
+  fillSelect("fDivision", divisions);
+  fillSelect("fStatus", statuses);
+  fillSelect("fIssue", issues);
+  fillSelect("fSOName", soNames);
+  fillSelect("fSubDiv", subDivs);
+  fillSelect("fLAC", lacs);
+}
+function fillSelect(id, values){
+  const sel = document.getElementById(id);
+  const current = sel.value;
+  const first = sel.options[0];
+  sel.innerHTML = "";
+  sel.appendChild(first);
+  values.forEach(v=>{
+    const o = document.createElement("option");
+    o.value = v; o.textContent = v;
+    sel.appendChild(o);
   });
-  
-  const contractorCount=contractorSet.size;
-
-  let html=`<div class="kpi-row">
-    ${kpiCard(total,'Total Schemes','','Tinsukia + Digboi')}
-    ${kpiCard(totalS,'Works Started','good',pct(totalS)+'% of total')}
-    ${kpiCard(totalW,'Willing / Not Started','warn',pct(totalW)+'% of total')}
-    ${kpiCard(totalN,'Not Willing','danger',pct(totalN)+'% of total')}
-    ${kpiCard(contractorCount,'Contractors','info','')}
-  </div>`;
-
-  html+=`<div class="comp-section">`;
-  [['Tinsukia',t,ts,tw,tn],['Digboi',d,ds,dw,dn]].forEach(([name,rows,s,w,n])=>{
-    const tot=rows.length||1;
-    html+=`<div class="comp-card"><h4>${name} Sub-Division</h4>
-    <div class="kpi-row" style="margin-bottom:10px">
-      ${kpiCard(rows.length,'Schemes','')}${kpiCard(s,'Started','good')}${kpiCard(w,'Willing','warn')}${kpiCard(n,'Not Willing','danger')}
-    </div>
-    <div style="margin-top:6px">
-      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--gray2);margin-bottom:2px"><span>Started</span><span>${Math.round(s/tot*100)}%</span></div>
-      <div class="prog-bar" style="height:10px;margin-bottom:5px"><div class="prog-fill" style="width:${Math.round(s/tot*100)}%"></div></div>
-      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--gray2);margin-bottom:2px"><span>Willing / Not Started</span><span>${Math.round(w/tot*100)}%</span></div>
-      <div class="prog-bar" style="height:10px;margin-bottom:5px"><div class="prog-fill warn" style="width:${Math.round(w/tot*100)}%"></div></div>
-      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--gray2);margin-bottom:2px"><span>Not Willing</span><span>${Math.round(n/tot*100)}%</span></div>
-      <div class="prog-bar" style="height:10px"><div class="prog-fill danger" style="width:${Math.round(n/tot*100)}%"></div></div>
-    </div></div>`;
-  });
-  html+=`</div>`;
-
-  const bySubdiv={};
-  all.forEach(r=>{
-    const k=get(r,COL.SUBDIV)||r.sheet;
-    if(!bySubdiv[k])bySubdiv[k]={name:k,total:0,started:0,willing:0,notwilling:0};
-    bySubdiv[k].total++;
-    const sc=cs(r);
-    if(sc==='started')bySubdiv[k].started++;
-    else if(sc==='willing')bySubdiv[k].willing++;
-    else if(sc==='notwilling')bySubdiv[k].notwilling++;
-  });
-  let tbl=`<table><thead><tr><th>Sub-Division</th><th>Total</th><th>Started</th><th>Willing / Not Started</th><th>Not Willing</th><th>Progress</th></tr></thead><tbody>`;
-  Object.values(bySubdiv).forEach(s=>{
-    const pct2=Math.round(s.started/s.total*100);
-    tbl+=`<tr><td><strong>${s.name}</strong></td><td>${s.total}</td>
-    <td><span class="badge b-started">${s.started}</span></td>
-    <td><span class="badge b-willing">${s.willing}</span></td>
-    <td><span class="badge b-notwilling">${s.notwilling}</span></td>
-    <td><div class="prog-wrap"><div class="prog-bar"><div class="prog-fill ${pct2<30?'danger':pct2<60?'warn':''}\" style=\"width:${pct2}%\"></div></div><span class="prog-pct">${pct2}%</span></div></td></tr>`;
-  });
-  tbl+=`<tr style="background:#e8edf7;font-weight:700"><td>TOTAL</td><td>${total}</td><td>${totalS}</td><td>${totalW}</td><td>${totalN}</td><td>${pct(totalS)}%</td></tr></tbody></table>`;
-  html+=sectionWrap('Division-wise Status Summary','All schemes',tbl);
-  document.getElementById('page-dashboard').innerHTML=html;
+  if(values.includes(current)) sel.value = current;
 }
 
-function renderR1(){
-  const fid='f-r1';
-  let html=filtersBar(fid,{extMonth:true,search:false,contractor:false});
-  const fv=getFilterVals(fid);
-  let rows=filterRows(allRows(),fv);
+/* Tabs */
+function renderTabPills(){
+  const wrap = document.getElementById("tabPills");
+  wrap.innerHTML = "";
+  const counts = {all: allRows.length};
+  TABS.forEach(t=> counts[t.key] = allRows.filter(r=>r.tabKey===t.key).length);
+  const defs = [{key:"all", short:"All schemes"}, ...TABS];
+  defs.forEach(t=>{
+    const p = document.createElement("div");
+    p.className = "tab-pill" + (activeTab===t.key ? " active":"");
+    p.innerHTML = `${t.short} <span class="count">${counts[t.key]||0}</span>`;
+    p.onclick = ()=>{ activeTab = t.key; render(); };
+    wrap.appendChild(p);
+  });
+}
 
-  const cs=r=>classifyStatus(get(r,COL.STATUS));
-  const s=rows.filter(r=>cs(r)==='started').length;
-  const w=rows.filter(r=>cs(r)==='willing').length;
-  const n=rows.filter(r=>cs(r)==='notwilling').length;
+/* KPIs */
+function renderKPIs(filtered){
+  const total = filtered.length;
+  const completed = filtered.filter(r=>r.risk==="completed").length;
+  const ontrack = filtered.filter(r=>r.risk==="ontrack").length;
+  const atrisk = filtered.filter(r=>r.risk==="atrisk").length;
+  const finVals = filtered.map(r=>r.finPct).filter(v=>v!==null && !isNaN(v));
+  const avgFin = finVals.length ? (finVals.reduce((a,b)=>a+b,0)/finVals.length) : 0;
 
-  html+=`<div class="kpi-row">
-    ${kpiCard(rows.length,'Total Schemes')}
-    ${kpiCard(s,'Works Started','good')}
-    ${kpiCard(w,'Willing / Not Started','warn')}
-    ${kpiCard(n,'Not Willing','danger')}
-  </div>`;
+  const kpis = [
+    {label:"Total Schemes", value: total, sub: `${filtered.filter(r=>r.tabKey==='pwss').length} PWSS | ${filtered.filter(r=>r.tabKey==='mvs').length} MVS | ${filtered.filter(r=>r.tabKey==='mvsqq').length} MVS(Q&Q)`, cls:""},
+    {label:"Completed / Handed Over", value: completed, sub: total ? (completed/total*100).toFixed(1)+"%  of filtered" : "--", cls:"accent-success"},
+    {label:"On Track (Yes)", value: ontrack, sub: total ? (ontrack/total*100).toFixed(1)+"%  of filtered" : "--", cls:"accent-teal"},
+    {label:"At Risk (No)", value: atrisk, sub: total ? (atrisk/total*100).toFixed(1)+"%  need attention" : "--", cls:"accent-alert"},
+    {label:"Avg Financial Progress", value: avgFin.toFixed(1)+"%", sub: `${finVals.length} schemes reporting`, cls:"", gauge:avgFin}
+  ];
+  const strip = document.getElementById("kpiStrip");
+  strip.innerHTML = "";
+  kpis.forEach(k=>{
+    const div = document.createElement("div");
+    div.className = "kpi " + k.cls;
+    div.innerHTML = `
+      <div class="label">${k.label}</div>
+      <div class="value">${k.value}</div>
+      <div class="sub">${k.sub}</div>
+      ${k.gauge!==undefined ? `<div class="flow-gauge"><div class="fill" style="width:${Math.min(100,k.gauge)}%"></div></div>` : ""}
+    `;
+    strip.appendChild(div);
+  });
+}
 
-  const extMonths=[...new Set(rows.map(r=>fmtMonthYear(get(r,COL.EXTDATE))))].filter(m=>m&&m!=='—').sort();
-  const subdivs=[...new Set(rows.map(r=>get(r,COL.SUBDIV)||r.sheet))].filter(Boolean).sort();
+/* Charts */
+function renderDonut(filtered){
+  const cats = [
+    {key:"ontrack", label:"On track (Yes)", color:"#1E9E6B"},
+    {key:"atrisk", label:"At risk (No)", color:"#D6483E"},
+    {key:"completed", label:"Completed", color:"#0F9E96"},
+    {key:"unknown", label:"Not specified", color:"#B9C3C6"}
+  ];
+  const total = filtered.length || 1;
+  let cum = 0;
+  const r = 62, cx=80, cy=80, sw=22;
+  const circ = 2*Math.PI*r;
+  let arcs = "";
+  cats.forEach(c=>{
+    const count = filtered.filter(x=>x.risk===c.key).length;
+    const frac = count/total;
+    const dash = frac*circ;
+    arcs += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${c.color}" stroke-width="${sw}" stroke-dasharray="${dash} ${circ-dash}" stroke-dashoffset="${-cum}" transform="rotate(-90 ${cx} ${cy})"/>`;
+    cum += dash;
+  });
+  const svg = `<svg width="100%" height="180" viewBox="0 0 160 160">${arcs}<circle cx="${cx}" cy="${cy}" r="${r-sw/2-4}" fill="#fff"/><text x="${cx}" y="${cy-2}" text-anchor="middle" font-family="Space Grotesk" font-weight="700" font-size="22" fill="#0B2540">${total}</text><text x="${cx}" y="${cy+16}" text-anchor="middle" font-family="IBM Plex Sans" font-size="10" fill="#5C7079">SCHEMES</text></svg>`;
+  document.getElementById("donutChart").innerHTML = svg;
+  document.getElementById("donutLegend").innerHTML = cats.map(c=>{
+    const count = filtered.filter(x=>x.risk===c.key).length;
+    return `<span><i style="background:${c.color}"></i>${c.label} (${count})</span>`;
+  }).join("");
+}
 
-  if(extMonths.length){
-    let pvt=`<div class="pivot-wrap"><table class="pivot-table"><thead><tr><th class="row-head">Sub-Division</th>`;
-    extMonths.forEach(m=>pvt+=`<th>${m}</th>`);
-    pvt+=`<th>Total</th></tr></thead><tbody>`;
-    subdivs.forEach(sd=>{
-      pvt+=`<tr><td class="row-label">${sd}</td>`;
-      let tot=0;
-      extMonths.forEach(m=>{
-        const cnt=rows.filter(r=>(get(r,COL.SUBDIV)||r.sheet)===sd&&fmtMonthYear(get(r,COL.EXTDATE))===m).length;
-        tot+=cnt;
-        pvt+=`<td>${cnt||''}</td>`;
-      });
-      pvt+=`<td class="total-col">${tot}</td></tr>`;
+function renderBar(filtered){
+  const divMap = {};
+  filtered.forEach(r=>{
+    if(!divMap[r.division]) divMap[r.division] = {total:0, atrisk:0, completed:0, ontrack:0, unknown:0};
+    divMap[r.division].total++;
+    divMap[r.division][r.risk]++;
+  });
+  const top = Object.entries(divMap).sort((a,b)=>b[1].total-a[1].total).slice(0,10);
+  const max = top.length ? top[0][1].total : 1;
+  const rowH = 26, chartW = 560;
+  let rows = "";
+  top.forEach(([name, d], i)=>{
+    const y = i*rowH;
+    let x = 0;
+    const segs = [{v:d.completed, c:"#0F9E96"}, {v:d.ontrack, c:"#1E9E6B"}, {v:d.atrisk, c:"#D6483E"}, {v:d.unknown, c:"#B9C3C6"}];
+    let bar = "";
+    segs.forEach(s=>{
+      const w = (s.v/max)*(chartW-160);
+      if(w>0){ bar += `<rect x="${160+x}" y="${y+4}" width="${w}" height="14" fill="${s.c}" rx="2"/>`; x+=w; }
     });
-    pvt+=`<tr class="total-row"><td class="row-label">TOTAL</td>`;
-    extMonths.forEach(m=>{
-      const cnt=rows.filter(r=>fmtMonthYear(get(r,COL.EXTDATE))===m).length;
-      pvt+=`<td>${cnt}</td>`;
-    });
-    pvt+=`<td>${rows.length}</td></tr></tbody></table></div>`;
-    html+=sectionWrap('Timeline Extension by STATE HQ (Pivot)','Month-wise scheme count',pvt);
+    rows += `<text x="0" y="${y+15}" font-size="11" fill="#16262E" font-family="IBM Plex Sans">${name.length>22?name.slice(0,21)+"...":name}</text>${bar}<text x="${170+x}" y="${y+15}" font-size="11" fill="#5C7079" font-family="IBM Plex Mono">${d.total}</text>`;
+  });
+  const svg = `<svg width="100%" height="${Math.max(top.length*rowH+10,60)}" viewBox="0 0 ${chartW} ${top.length*rowH+10}">${rows || '<text x="0" y="20" fill="#5C7079" font-size="12">No data</text>'}</svg>`;
+  document.getElementById("barChart").innerHTML = svg;
+}
+
+function renderPeriod(filtered){
+  const map = {};
+  filtered.forEach(r=>{
+    const key = r.njjmDate || "Not specified";
+    map[key] = (map[key]||0)+1;
+  });
+  const entries = Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const max = entries.length ? entries[0][1] : 1;
+  const rowH = 26, chartW = 460;
+  let rows = "";
+  entries.forEach(([name,count],i)=>{
+    const y = i*rowH;
+    const w = (count/max)*(chartW-150);
+    rows += `<text x="0" y="${y+15}" font-size="11" fill="#16262E" font-family="IBM Plex Sans">${name}</text><rect x="140" y="${y+4}" width="${w}" height="14" fill="#123A5E" rx="2"/><text x="${150+w}" y="${y+15}" font-size="11" fill="#5C7079" font-family="IBM Plex Mono">${count}</text>`;
+  });
+  const svg = `<svg width="100%" height="${Math.max(entries.length*rowH+10,60)}" viewBox="0 0 ${chartW} ${entries.length*rowH+10}">${rows || '<text x="0" y="20" fill="#5C7079" font-size="12">No data</text>'}</svg>`;
+  document.getElementById("periodChart").innerHTML = svg;
+}
+
+/* Export */
+function exportToCSV(rows, filename){
+  const EXPORT_COLUMNS = [
+    {key:"tabShort", label:"Category"},
+    {key:"sno", label:"SNo"},
+    {key:"division", label:"Division"},
+    {key:"schemeId", label:"Scheme ID"},
+    {key:"schemeName", label:"Scheme Name"},
+    {key:"status", label:"Status"},
+    {key:"finPct", label:"Financial %"},
+    {key:"njjmDate", label:"NJJM Target Date"},
+    {key:"risk", label:"Confidence"},
+    {key:"issueGroup", label:"Issue Group"},
+    {key:"soName", label:"SO Name"},
+    {key:"subDivision", label:"Sub-Division"},
+    {key:"lac", label:"LAC"},
+    {key:"reason", label:"Reason"},
+    {key:"suggestions", label:"Suggestions"},
+    {key:"tentativeDate", label:"Tentative Date"}
+  ];
+  
+  if(!rows || rows.length === 0){
+    alert("No data to export for this category");
+    return;
   }
 
-  let tbl=`<table id="r1-tbl"><thead><tr>
-    <th>#</th><th>Sub-Division</th><th>SO Name</th><th>Scheme ID</th><th>Scheme Name</th>
-    <th>NJJM Date</th><th>Extension (STATE HQ)</th><th>Tentative Date</th>
-    <th>Started</th><th>Willing</th><th>Not Willing</th>
-  </tr></thead><tbody>`;
-
-  const bySD={};
-  rows.forEach(r=>{const k=get(r,COL.SUBDIV)||r.sheet;if(!bySD[k])bySD[k]=[];bySD[k].push(r);});
-  let idx=1;
-  Object.keys(bySD).sort().forEach(sd=>{
-    bySD[sd].forEach(r=>{
-      const sc=cs(r);
-      tbl+=`<tr><td>${idx++}</td><td>${get(r,COL.SUBDIV)||r.sheet}</td><td>${get(r,COL.SO)||'—'}</td>
-      <td>${get(r,COL.SCHEMEID)||'—'}</td><td>${get(r,COL.SCHEMENAME)||'—'}</td>
-      <td>${fmtDate(get(r,COL.NJJMDATE))}</td>
-      <td><span class="badge b-ext">${fmtMonthYear(get(r,COL.EXTDATE))}</span></td>
-      <td>${fmtDate(get(r,COL.TENTDATE))}</td>
-      <td>${sc==='started'?'&#10003;':''}</td>
-      <td>${sc==='willing'?'&#10003;':''}</td>
-      <td>${sc==='notwilling'?'&#10003;':''}</td>
-      </tr>`;
+  let csv = EXPORT_COLUMNS.map(c=>c.label).join(",") + "\n";
+  rows.forEach(row=>{
+    const values = EXPORT_COLUMNS.map(col=>{
+      let val = row[col.key] || "";
+      if(col.key === "finPct" && val !== "") val = val.toFixed(1) + "%";
+      val = String(val).replace(/"/g, '""');
+      return `"${val}"`;
     });
+    csv += values.join(",") + "\n";
   });
-  tbl+=`</tbody></table>`;
-  html+=sectionWrap('Work Started Status — Scheme-wise Detail',`${rows.length} schemes`,tbl);
-  document.getElementById('page-r1').innerHTML=html;
+
+  const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  link.setAttribute("href", url);
+  link.setAttribute("download", filename);
+  link.style.visibility = "hidden";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
-function renderR2(){
-  const fid='f-r2';
-  let html=filtersBar(fid,{contractor:true,search:false});
-  const fv=getFilterVals(fid);
-  let rows=filterRows(allRows(),fv);
-
-  const contractors={};
-  rows.forEach(r=>{
-    const c=get(r,COL.CONTRACTOR)||'(Not Assigned)';
-    if(!contractors[c])contractors[c]={name:c,rows:[],subdivs:new Set(),extensions:new Set()};
-    contractors[c].rows.push(r);
-    contractors[c].subdivs.add(get(r,COL.SUBDIV)||r.sheet);
-    const em=fmtMonthYear(get(r,COL.EXTDATE));
-    if(em&&em!=='—') contractors[c].extensions.add(em);
+function renderExportButtons(filtered){
+  const categories = [
+    {risk:"ontrack", label:"On Track (Yes)"},
+    {risk:"atrisk", label:"At Risk (No)"},
+    {risk:"completed", label:"Completed"},
+    {risk:"unknown", label:"Not Specified"}
+  ];
+  
+  const wrap = document.getElementById("exportButtons");
+  wrap.innerHTML = "";
+  
+  categories.forEach(cat=>{
+    const rows = filtered.filter(r=>r.risk===cat.risk);
+    const count = rows.length;
+    const btn = document.createElement("button");
+    btn.className = "export-btn";
+    btn.innerHTML = `<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M7 10l5 5m0 0l5-5m-5 5V3"/></svg> Export ${cat.label} (${count})`;
+    btn.onclick = ()=>{
+      const timestamp = new Date().toISOString().split("T")[0];
+      const filename = `CIRP-${cat.label.replace(/\s+/g,"-")}-${timestamp}.csv`;
+      exportToCSV(rows, filename);
+    };
+    wrap.appendChild(btn);
   });
-  const cList=Object.values(contractors).sort((a,b)=>b.rows.length-a.rows.length);
-  const cs=r=>classifyStatus(get(r,COL.STATUS));
-
-  html+=`<div class="kpi-row">
-    ${kpiCard(cList.length,'Total Contractors','info')}
-    ${kpiCard(rows.length,'Total Schemes')}
-    ${kpiCard(cList.filter(c=>c.rows.every(r=>cs(r)==='started')).length,'All Started','good')}
-    ${kpiCard(cList.filter(c=>c.rows.some(r=>cs(r)==='notwilling')).length,'Has Not-Willing','danger')}
-  </div>`;
-
-  let tbl=`<table><thead><tr>
-    <th>#</th><th>Contractor Name</th><th>Sub-Division(s)</th>
-    <th>Total Schemes</th><th>Started</th><th>Willing / Not Started</th><th>Not Willing</th>
-    <th>Timeline Extensions</th><th>Details</th>
-  </tr></thead><tbody>`;
-  cList.forEach((c,i)=>{
-    const s=c.rows.filter(r=>cs(r)==='started').length;
-    const w=c.rows.filter(r=>cs(r)==='willing').length;
-    const n=c.rows.filter(r=>cs(r)==='notwilling').length;
-    tbl+=`<tr>
-      <td>${i+1}</td>
-      <td><strong>${c.name}</strong></td>
-      <td>${[...c.subdivs].join(', ')}</td>
-      <td>${c.rows.length}</td>
-      <td><span class="badge b-started">${s}</span></td>
-      <td><span class="badge b-willing">${w}</span></td>
-      <td><span class="badge b-notwilling">${n}</span></td>
-      <td style="font-size:10px">${[...c.extensions].sort().map(e=>`<span class="badge b-navy">${e}</span>`).join(' ')||'—'}</td>
-      <td><button onclick="toggleDrilldown('dd-${i}','${c.name.replace(/'/g,"\\'")}',this)" style="font-size:10px;padding:2px 7px;cursor:pointer;border:1px solid var(--border);border-radius:3px;background:var(--gray5)">Expand</button></td>
-    </tr>
-    <tr id="dd-${i}" style="display:none"><td colspan="9" style="padding:0">
-      <div class="drilldown-inner" style="background:#f0f4fb">
-        <div id="dd-inner-${i}"></div>
-      </div>
-    </td></tr>`;
-  });
-  tbl+=`</tbody></table>`;
-  html+=sectionWrap('Contractor-Wise Report',`${cList.length} contractors`,tbl);
-  document.getElementById('page-r2').innerHTML=html;
-  window._contractorData=cList;
 }
 
-function toggleDrilldown(id,contractorName,btn){
-  const row=document.getElementById(id);
-  const inner=document.getElementById('dd-inner-'+id.split('-')[1]);
-  if(row.style.display==='none'){
-    row.style.display='';
-    btn.textContent='Collapse';
-    const c=window._contractorData.find(x=>x.name===contractorName);
-    if(c&&inner&&!inner.innerHTML){
-      let h=`<div style="font-weight:700;color:var(--navy);margin-bottom:6px;font-size:12px">${c.name} — ${c.rows.length} Schemes</div>`;
-      h+=`<table style="font-size:11px;width:100%"><thead><tr><th>#</th><th>Scheme ID</th><th>Scheme Name</th><th>Sub-Division</th><th>TYPE-1</th><th>TYPE-2</th><th>Extension</th><th>Status</th></tr></thead><tbody>`;
-      c.rows.forEach((r,i)=>{
-        h+=`<tr><td>${i+1}</td><td>${get(r,COL.SCHEMEID)||'—'}</td><td>${get(r,COL.SCHEMENAME)||'—'}</td><td>${get(r,COL.SUBDIV)||r.sheet}</td><td>${get(r,COL.TYPE1)||'—'}</td><td>${get(r,COL.TYPE2)||'—'}</td><td><span class="badge b-ext">${fmtMonthYear(get(r,COL.EXTDATE))}</span></td><td>${statusBadge(get(r,COL.STATUS))}</td></tr>`;
-      });
-      h+=`</tbody></table>`;
-      inner.innerHTML=h;
-    }
-  }else{
-    row.style.display='none';
-    btn.textContent='Expand';
+/* Table */
+const COLUMNS = [
+  {key:"tabShort", label:"Category"},
+  {key:"sno", label:"SNo"},
+  {key:"division", label:"Division"},
+  {key:"schemeId", label:"Scheme ID"},
+  {key:"schemeName", label:"Scheme Name", wrap:true},
+  {key:"status", label:"Status"},
+  {key:"finPct", label:"Fin. %"},
+  {key:"njjmDate", label:"NJJM Target"},
+  {key:"risk", label:"Confidence"},
+  {key:"issueGroup", label:"Issue Group"},
+  {key:"soName", label:"SO Name"},
+  {key:"subDivision", label:"Sub-Division"},
+  {key:"lac", label:"LAC"},
+  {key:"tentativeDate", label:"Tentative Date"}
+];
+
+function renderTableHead(){
+  const head = document.getElementById("headRow");
+  head.innerHTML = "<th></th>" + COLUMNS.map(c=>{
+    const arrow = sortState.col===c.key ? (sortState.dir===1?"^":"v") : "";
+    return `<th data-col="${c.key}">${c.label}<span class="arrow">${arrow}</span></th>`;
+  }).join("");
+  head.querySelectorAll("th[data-col]").forEach(th=>{
+    th.onclick = ()=>{
+      const col = th.getAttribute("data-col");
+      if(sortState.col===col) sortState.dir *= -1;
+      else { sortState.col = col; sortState.dir = 1; }
+      render(true);
+    };
+  });
+}
+
+function sortRows(rows){
+  if(!sortState.col) return rows;
+  const col = sortState.col, dir = sortState.dir;
+  return [...rows].sort((a,b)=>{
+    let av=a[col], bv=b[col];
+    if(col==="finPct"){ av = av===null?-1:av; bv = bv===null?-1:bv; }
+    else if(col==="sno"){ av=parseInt(av,10)||0; bv=parseInt(bv,10)||0; }
+    else { av = (av||"").toString().toLowerCase(); bv=(bv||"").toString().toLowerCase(); }
+    if(av<bv) return -1*dir;
+    if(av>bv) return 1*dir;
+    return 0;
+  });
+}
+
+function renderTableBody(filtered){
+  const body = document.getElementById("bodyRows");
+  const sorted = sortRows(filtered);
+  if(!sorted.length){
+    body.innerHTML = `<tr><td colspan="${COLUMNS.length+1}"><div class="empty-state">No schemes match the current filters.</div></td></tr>`;
+    return;
   }
-}
-
-function renderR3(){
-  const all=allRows();
-  if(!all.length){document.getElementById('page-r3').innerHTML='<div class="err-box">No data loaded.</div>';return;}
-  const cs=r=>classifyStatus(get(r,COL.STATUS));
-  const t=DATA.tinsukia,d=DATA.digboi;
-  const ts=t.filter(r=>cs(r)==='started').length,ds=d.filter(r=>cs(r)==='started').length;
-
-  let html=`<div class="kpi-row">
-    ${kpiCard(all.length,'Combined Schemes','','Tinsukia + Digboi')}
-    ${kpiCard(t.length,'Tinsukia Schemes','info')}
-    ${kpiCard(d.length,'Digboi Schemes','info')}
-    ${kpiCard(ts+ds,'Total Started','good')}
-    ${kpiCard(all.filter(r=>cs(r)==='willing').length,'Willing / Not Started','warn')}
-    ${kpiCard(all.filter(r=>cs(r)==='notwilling').length,'Not Willing','danger')}
-  </div>`;
-
-  let sumTbl=`<table><thead><tr><th>Division</th><th>Total Schemes</th><th>Started</th><th>Willing / Not Started</th><th>Not Willing</th><th>Progress</th></tr></thead><tbody>`;
-  [[`Tinsukia`,t],[`Digboi`,d],[`COMBINED`,all]].forEach(([name,rows])=>{
-    const s=rows.filter(r=>cs(r)==='started').length;
-    const w=rows.filter(r=>cs(r)==='willing').length;
-    const n=rows.filter(r=>cs(r)==='notwilling').length;
-    const pct2=rows.length?Math.round(s/rows.length*100):0;
-    const isTot=name==='COMBINED';
-    sumTbl+=`<tr ${isTot?'style="background:#1B2A4A;color:#fff;font-weight:700"':''}>
-      <td><strong>${name}</strong></td><td>${rows.length}</td>
-      <td>${s}</td><td>${w}</td><td>${n}</td>
-      <td>${pct2}%</td></tr>`;
-  });
-  sumTbl+=`</tbody></table>`;
-  html+=sectionWrap('Overall Combined Summary','Tinsukia Division (Tinsukia + Digboi)',sumTbl);
-
-  let tbl=`<table><thead><tr><th>#</th><th>Sub-Division</th><th>SO Name</th><th>Scheme ID</th><th>Scheme Name</th><th>Contractor</th><th>TYPE-1</th><th>TYPE-2</th><th>Extension</th><th>Status</th></tr></thead><tbody>`;
-  let idx=1;
-  ['Tinsukia','Digboi'].forEach(sheetName=>{
-    const sheetRows=sheetName==='Tinsukia'?t:d;
-    if(sheetRows.length){
-      tbl+=`<tr><td colspan="10" style="background:#2c3e6a;color:#fff;font-weight:700;padding:6px 9px">${sheetName} Sub-Division (${sheetRows.length} schemes)</td></tr>`;
-      sheetRows.forEach(r=>{
-        tbl+=`<tr><td>${idx++}</td><td>${get(r,COL.SUBDIV)||r.sheet}</td><td>${get(r,COL.SO)||'—'}</td>
-        <td>${get(r,COL.SCHEMEID)||'—'}</td><td>${get(r,COL.SCHEMENAME)||'—'}</td>
-        <td>${get(r,COL.CONTRACTOR)||'—'}</td><td>${get(r,COL.TYPE1)||'—'}</td><td>${get(r,COL.TYPE2)||'—'}</td>
-        <td><span class="badge b-ext">${fmtMonthYear(get(r,COL.EXTDATE))}</span></td>
-        <td>${statusBadge(get(r,COL.STATUS))}</td></tr>`;
-      });
+  const frag = document.createDocumentFragment();
+  sorted.forEach(r=>{
+    const tr = document.createElement("tr");
+    const hasDetail = r.reason || r.suggestions;
+    tr.innerHTML = `
+      <td>${hasDetail ? `<button class="expand-toggle" data-key="${r.key}">${expandedKey===r.key?"-":"+"}</button>` : ""}</td>
+      <td><span class="tab-tag">${r.tabShort}</span></td>
+      <td class="mono">${r.sno}</td>
+      <td>${r.division}</td>
+      <td class="mono">${r.schemeId}</td>
+      <td class="wrap">${r.schemeName}</td>
+      <td>${r.status||"--"}</td>
+      <td class="mono">${r.finPct!==null ? r.finPct.toFixed(1)+"%" : "--"} <span class="flow-gauge mini risk-${r.risk}"><span class="fill" style="width:${r.finPct!==null?Math.min(100,r.finPct):0}%"></span></span></td>
+      <td>${r.njjmDate||"--"}</td>
+      <td><span class="badge ${r.risk}">${riskLabel(r.risk)}</span></td>
+      <td class="wrap">${r.issueGroup||"--"}</td>
+      <td>${r.soName||"--"}</td>
+      <td>${r.subDivision||"--"}</td>
+      <td>${r.lac||"--"}</td>
+      <td class="mono">${r.tentativeDate||"--"}</td>
+    `;
+    frag.appendChild(tr);
+    if(hasDetail && expandedKey===r.key){
+      const dt = document.createElement("tr");
+      dt.className = "expand-row";
+      dt.innerHTML = `<td></td><td colspan="${COLUMNS.length}">${r.reason ? `<strong>Reason:</strong> ${r.reason}<br>` : ""}${r.suggestions ? `<strong>Suggestions:</strong> ${r.suggestions}` : ""}</td>`;
+      frag.appendChild(dt);
     }
   });
-  tbl+=`</tbody></table>`;
-  html+=sectionWrap('Combined Scheme-wise Register',`${all.length} total schemes`,tbl);
-  document.getElementById('page-r3').innerHTML=html;
-}
-
-function renderR4(){
-  const fid='f-r4';
-  let html=filtersBar(fid,{minDelay:true,search:false,contractor:false});
-  const fv=getFilterVals(fid);
-  const today=new Date();
-  let rows=filterRows(allRows(),fv).map(r=>{
-    const extDate=parseDate(get(r,COL.EXTDATE));
-    const delay=extDate?monthsBetween(extDate,today):null;
-    return{...r,_extDate:extDate,_delay:delay};
-  }).filter(r=>r._delay!==null&&r._delay>=fv.minDelay).sort((a,b)=>b._delay-a._delay);
-
-  const all2=filterRows(allRows(),{sheet:fv.sheet,subdiv:fv.subdiv});
-  const delays=all2.map(r=>{const e=parseDate(get(r,COL.EXTDATE));return e?monthsBetween(e,today):null;}).filter(x=>x!==null);
-  const maxD=delays.length?Math.max(...delays):0;
-  const avgD=delays.length?Math.round(delays.reduce((a,b)=>a+b,0)/delays.length):0;
-
-  html+=`<div class="kpi-row">
-    ${kpiCard(rows.length,'Schemes (Extension Passed)')}
-    ${kpiCard(maxD+' mo','Max Delay','danger')}
-    ${kpiCard(avgD+' mo','Average Delay','warn')}
-    ${kpiCard(rows.filter(r=>r._delay>6).length,'> 6 Months Overdue','danger')}
-    ${kpiCard(rows.filter(r=>r._delay>3&&r._delay<=6).length,'3–6 Months Overdue','warn')}
-    ${kpiCard(rows.filter(r=>r._delay<=3).length,'≤ 3 Months','good')}
-  </div>`;
-
-  let tbl=`<table><thead><tr><th>#</th><th>Sub-Division</th><th>Scheme ID</th><th>Scheme Name</th><th>Contractor</th><th>Extension Date</th><th>Delay (months)</th><th>Status</th></tr></thead><tbody>`;
-  rows.forEach((r,i)=>{
-    const dc=r._delay>6?'color:var(--red);font-weight:700':r._delay>3?'color:var(--amber);font-weight:600':'color:var(--green)';
-    tbl+=`<tr><td>${i+1}</td><td>${get(r,COL.SUBDIV)||r.sheet}</td>
-    <td>${get(r,COL.SCHEMEID)||'—'}</td><td>${get(r,COL.SCHEMENAME)||'—'}</td>
-    <td>${get(r,COL.CONTRACTOR)||'—'}</td>
-    <td>${fmtDate(get(r,COL.EXTDATE))}</td>
-    <td style="${dc}">${r._delay} months</td>
-    <td>${statusBadge(get(r,COL.STATUS))}</td></tr>`;
+  body.innerHTML = "";
+  body.appendChild(frag);
+  body.querySelectorAll(".expand-toggle").forEach(btn=>{
+    btn.onclick = ()=>{
+      const k = btn.getAttribute("data-key");
+      expandedKey = expandedKey===k ? null : k;
+      render(true);
+    };
   });
-  if(!rows.length) tbl+=`<tr><td colspan="8" class="table-empty">No schemes match current filters.</td></tr>`;
-  tbl+=`</tbody></table>`;
-  html+=sectionWrap('Delay Analysis','From Timeline Extension by STATE HQ to today',tbl);
-  document.getElementById('page-r4').innerHTML=html;
 }
 
-function renderR5(){
-  const fid='f-r5';
-  let html=filtersBar(fid,{search:true,contractor:true});
-  const fv=getFilterVals(fid);
-  let rows=filterRows(allRows(),fv);
-  const cs=r=>classifyStatus(get(r,COL.STATUS));
-  const s=rows.filter(r=>cs(r)==='started').length;
-  const pct=rows.length?Math.round(s/rows.length*100):0;
-
-  html+=`<div class="kpi-row">
-    ${kpiCard(rows.length,'Schemes Shown')}
-    ${kpiCard(s,'Started','good')}
-    ${kpiCard(pct+'%','Work Started Rate',pct>60?'good':pct>30?'warn':'danger')}
-  </div>`;
-
-  let tbl=`<table id="r5-tbl"><thead><tr>
-    <th class="sortable" onclick="sortTableR5(0)"># <span class="sort-ico">⇅</span></th>
-    <th class="sortable" onclick="sortTableR5(1)">Sub-Div <span class="sort-ico">⇅</span></th>
-    <th class="sortable" onclick="sortTableR5(2)">SO <span class="sort-ico">⇅</span></th>
-    <th class="sortable" onclick="sortTableR5(3)">Scheme ID <span class="sort-ico">⇅</span></th>
-    <th class="sortable" onclick="sortTableR5(4)">Scheme Name <span class="sort-ico">⇅</span></th>
-    <th class="sortable" onclick="sortTableR5(5)">TYPE-1 <span class="sort-ico">⇅</span></th>
-    <th class="sortable" onclick="sortTableR5(6)">TYPE-2 <span class="sort-ico">⇅</span></th>
-    <th class="sortable" onclick="sortTableR5(7)">Contractor <span class="sort-ico">⇅</span></th>
-    <th class="sortable" onclick="sortTableR5(8)">NJJM Date <span class="sort-ico">⇅</span></th>
-    <th class="sortable" onclick="sortTableR5(9)">Extension <span class="sort-ico">⇅</span></th>
-    <th class="sortable" onclick="sortTableR5(10)">Tentative <span class="sort-ico">⇅</span></th>
-    <th class="sortable" onclick="sortTableR5(11)">Status <span class="sort-ico">⇅</span></th>
-  </tr></thead><tbody>`;
-  rows.forEach((r,i)=>{
-    tbl+=`<tr><td>${i+1}</td><td>${get(r,COL.SUBDIV)||r.sheet}</td><td>${get(r,COL.SO)||'—'}</td>
-    <td>${get(r,COL.SCHEMEID)||'—'}</td><td>${get(r,COL.SCHEMENAME)||'—'}</td>
-    <td>${get(r,COL.TYPE1)||'—'}</td><td>${get(r,COL.TYPE2)||'—'}</td>
-    <td>${get(r,COL.CONTRACTOR)||'—'}</td>
-    <td>${fmtDate(get(r,COL.NJJMDATE))}</td>
-    <td><span class="badge b-ext">${fmtMonthYear(get(r,COL.EXTDATE))}</span></td>
-    <td>${fmtDate(get(r,COL.TENTDATE))}</td>
-    <td>${statusBadge(get(r,COL.STATUS))}</td></tr>`;
-  });
-  if(!rows.length) tbl+=`<tr><td colspan="12" class="table-empty">No schemes match current filters.</td></tr>`;
-  tbl+=`</tbody></table>`;
-  html+=sectionWrap('Scheme-Wise Progress Tracker',`${rows.length} schemes`,tbl);
-  document.getElementById('page-r5').innerHTML=html;
+/* Master render */
+function render(skipFilterRepopulate){
+  if(!skipFilterRepopulate) populateFilterOptions();
+  renderTabPills();
+  const filtered = applyFilters(allRows);
+  renderKPIs(filtered);
+  renderDonut(filtered);
+  renderBar(filtered);
+  renderPeriod(filtered);
+  renderExportButtons(filtered);
+  renderTableHead();
+  renderTableBody(filtered);
+  document.getElementById("resultCount").textContent = `${filtered.length} of ${allRows.length} schemes shown`;
 }
 
-function sortTableR5(colIdx){
-  const table=document.getElementById('r5-tbl');
-  const tbody=table.querySelector('tbody');
-  const rows=Array.from(tbody.querySelectorAll('tr')).filter(r=>!r.classList.contains('table-empty'));
-  if(!rows.length) return;
-  
-  const isAsc=sortState.col===colIdx?sortState.dir===1:true;
-  sortState.col=colIdx;
-  sortState.dir=isAsc?-1:1;
-  
-  rows.sort((a,b)=>{
-    let aVal=(a.children[colIdx]?.textContent||'').trim();
-    let bVal=(b.children[colIdx]?.textContent||'').trim();
-    
-    // Special handling for Extension column (index 9) - sort by date
-    if(colIdx===9){
-      const monthYearToDate=str=>{
-        if(!str||str==='—') return new Date(0);
-        const [month,year]=str.split(' ');
-        const monthMap={'jan':0,'feb':1,'mar':2,'apr':3,'may':4,'jun':5,'jul':6,'aug':7,'sep':8,'oct':9,'nov':10,'dec':11};
-        const m=monthMap[month.toLowerCase()]??-1;
-        return m===-1?new Date(0):new Date(year,m,1);
-      };
-      const aDate=monthYearToDate(aVal);
-      const bDate=monthYearToDate(bVal);
-      return(aDate-bDate)*sortState.dir;
-    }
-    
-    // Numeric sorting for other columns
-    const aNum=parseFloat(aVal);
-    const bNum=parseFloat(bVal);
-    if(!isNaN(aNum)&&!isNaN(bNum)) return(aNum-bNum)*sortState.dir;
-    
-    // Text sorting (case-insensitive)
-    return aVal.localeCompare(bVal)*sortState.dir;
-  });
-  
-  rows.forEach(r=>tbody.appendChild(r));
-  
-  document.querySelectorAll('#r5-tbl thead th').forEach(th=>{
-    th.style.fontStyle='normal';
-  });
-  table.querySelector('thead tr').children[colIdx].style.fontStyle='italic';
+/* Event handlers */
+["fDivision","fStatus","fRisk","fIssue","fSOName","fSubDiv","fLAC"].forEach(id=>{
+  document.getElementById(id).addEventListener("change", ()=>render(true));
+});
+document.getElementById("fSearch").addEventListener("input", ()=>render(true));
+document.getElementById("clearFilters").addEventListener("click", ()=>{
+  document.getElementById("fDivision").value="";
+  document.getElementById("fStatus").value="";
+  document.getElementById("fRisk").value="";
+  document.getElementById("fIssue").value="";
+  document.getElementById("fSOName").value="";
+  document.getElementById("fSubDiv").value="";
+  document.getElementById("fLAC").value="";
+  document.getElementById("fSearch").value="";
+  activeTab = "all";
+  render();
+});
+document.getElementById("refreshBtn").addEventListener("click", ()=>loadAll(true));
+document.getElementById("errorRetry").addEventListener("click", ()=>loadAll(true));
+document.getElementById("autoRefreshToggle").addEventListener("change", (e)=>{
+  if(e.target.checked) startAutoRefresh(); else stopAutoRefresh();
+});
+function startAutoRefresh(){
+  stopAutoRefresh();
+  autoRefreshTimer = setInterval(()=>loadAll(false), 120000);
+}
+function stopAutoRefresh(){
+  if(autoRefreshTimer) clearInterval(autoRefreshTimer);
 }
 
-function renderR6(){
-  const fid='f-r6';
-  let html=filtersBar(fid,{status:false,contractor:false,search:false});
-  const fv=getFilterVals(fid);
-  let rows=filterRows(allRows(),fv);
-
-  const monthYearToDate=str=>{
-    if(!str||str==='—') return new Date(0);
-    const [month,year]=str.split(' ');
-    const monthMap={'jan':0,'feb':1,'mar':2,'apr':3,'may':4,'jun':5,'jul':6,'aug':7,'sep':8,'oct':9,'nov':10,'dec':11};
-    const m=monthMap[month.toLowerCase()]??-1;
-    return m===-1?new Date(0):new Date(year,m,1);
-  };
-
-  const months=[...new Set(rows.map(r=>fmtMonthYear(get(r,COL.EXTDATE))))].filter(m=>m&&m!=='—').sort((a,b)=>monthYearToDate(a)-monthYearToDate(b));
-  const cs=r=>classifyStatus(get(r,COL.STATUS));
-
-  html+=`<div class="kpi-row">
-    ${kpiCard(months.length,'Distinct Extension Months','info')}
-    ${kpiCard(rows.filter(r=>get(r,COL.EXTDATE)).length,'Schemes with Extension')}
-    ${kpiCard(rows.filter(r=>!get(r,COL.EXTDATE)).length,'No Extension Data','warn')}
-  </div>`;
-
-  let pvt=`<div class="pivot-wrap"><table class="pivot-table" id="r6-tbl"><thead><tr>
-    <th class="row-head sortable" onclick="sortTableR6(0)">Extension Month <span class="sort-ico">⇅</span></th>
-    <th class="sortable" onclick="sortTableR6(1)">Started <span class="sort-ico">⇅</span></th>
-    <th class="sortable" onclick="sortTableR6(2)">Willing / Not Started <span class="sort-ico">⇅</span></th>
-    <th class="sortable" onclick="sortTableR6(3)">Not Willing <span class="sort-ico">⇅</span></th>
-    <th class="sortable" onclick="sortTableR6(4)">Total <span class="sort-ico">⇅</span></th>
-  </tr></thead><tbody>`;
-  let grandS=0,grandW=0,grandN=0;
-  const monthData=[];
-  months.forEach(m=>{
-    const mr=rows.filter(r=>fmtMonthYear(get(r,COL.EXTDATE))===m);
-    const s=mr.filter(r=>cs(r)==='started').length;
-    const w=mr.filter(r=>cs(r)==='willing').length;
-    const n=mr.filter(r=>cs(r)==='notwilling').length;
-    grandS+=s;grandW+=w;grandN+=n;
-    monthData.push({month:m,s,w,n,total:mr.length});
-  });
-  monthData.forEach(md=>{
-    pvt+=`<tr><td class="row-label">${md.month}</td><td>${md.s||''}</td><td>${md.w||''}</td><td>${md.n||''}</td><td class="total-col">${md.total}</td></tr>`;
-  });
-  pvt+=`<tr class="total-row"><td class="row-label">TOTAL</td><td>${grandS}</td><td>${grandW}</td><td>${grandN}</td><td>${rows.length}</td></tr>`;
-  pvt+=`</tbody></table></div>`;
-  html+=sectionWrap('Extension Pivot Table','Month-wise extension count with status breakdown',pvt);
-
-  const subdivs=[...new Set(rows.map(r=>get(r,COL.SUBDIV)||r.sheet))].filter(Boolean).sort();
-  if(subdivs.length>1){
-    let pvt2=`<div class="pivot-wrap"><table class="pivot-table" id="r6-tbl-2"><thead><tr><th class="row-head sortable" onclick="sortTableR6Subdiv(0)">Extension Month <span class="sort-ico">⇅</span></th>`;
-    subdivs.forEach(s=>pvt2+=`<th class="sortable" onclick="sortTableR6Subdiv(${subdivs.indexOf(s)+1})">${s} <span class="sort-ico">⇅</span></th>`);
-    pvt2+=`<th class="sortable" onclick="sortTableR6Subdiv(${subdivs.length+1})">Total <span class="sort-ico">⇅</span></th></tr></thead><tbody>`;
-    const subdivData=[];
-    months.forEach(m=>{
-      const row={month:m,subdivCounts:[],total:0};
-      subdivs.forEach(sd=>{
-        const cnt=rows.filter(r=>(get(r,COL.SUBDIV)||r.sheet)===sd&&fmtMonthYear(get(r,COL.EXTDATE))===m).length;
-        row.subdivCounts.push(cnt);
-        row.total+=cnt;
-      });
-      subdivData.push(row);
-    });
-    subdivData.forEach(sd=>{
-      pvt2+=`<tr><td class="row-label">${sd.month}</td>`;
-      sd.subdivCounts.forEach(cnt=>pvt2+=`<td>${cnt||''}</td>`);
-      pvt2+=`<td class="total-col">${sd.total}</td></tr>`;
-    });
-    pvt2+=`</tbody></table></div>`;
-    html+=sectionWrap('Extension by Sub-Division','Month x Sub-Division count',pvt2);
-  }
-  document.getElementById('page-r6').innerHTML=html;
-}
-
-function sortTableR6(colIdx){
-  const table=document.getElementById('r6-tbl');
-  const tbody=table.querySelector('tbody');
-  const rows=Array.from(tbody.querySelectorAll('tr')).filter(r=>!r.classList.contains('total-row'));
-  if(!rows.length) return;
-  
-  const isAsc=sortState.col===colIdx?sortState.dir===1:true;
-  sortState.col=colIdx;
-  sortState.dir=isAsc?-1:1;
-  
-  rows.sort((a,b)=>{
-    let aVal=(a.children[colIdx]?.textContent||'').trim();
-    let bVal=(b.children[colIdx]?.textContent||'').trim();
-    
-    // Special handling for Extension Month column (index 0) - sort by date
-    if(colIdx===0){
-      const monthYearToDate=str=>{
-        if(!str||str==='—') return new Date(0);
-        const [month,year]=str.split(' ');
-        const monthMap={'jan':0,'feb':1,'mar':2,'apr':3,'may':4,'jun':5,'jul':6,'aug':7,'sep':8,'oct':9,'nov':10,'dec':11};
-        const m=monthMap[month.toLowerCase()]??-1;
-        return m===-1?new Date(0):new Date(year,m,1);
-      };
-      const aDate=monthYearToDate(aVal);
-      const bDate=monthYearToDate(bVal);
-      return(aDate-bDate)*sortState.dir;
-    }
-    
-    // Numeric sorting for other columns
-    const aNum=parseFloat(aVal);
-    const bNum=parseFloat(bVal);
-    if(!isNaN(aNum)&&!isNaN(bNum)) return(aNum-bNum)*sortState.dir;
-    
-    return aVal.localeCompare(bVal)*sortState.dir;
-  });
-  
-  rows.forEach(r=>tbody.appendChild(r));
-  
-  document.querySelectorAll('#r6-tbl thead th').forEach(th=>{
-    th.style.fontStyle='normal';
-  });
-  table.querySelector('thead tr').children[colIdx].style.fontStyle='italic';
-}
-
-function sortTableR6Subdiv(colIdx){
-  const table=document.getElementById('r6-tbl-2');
-  if(!table) return;
-  const tbody=table.querySelector('tbody');
-  const rows=Array.from(tbody.querySelectorAll('tr'));
-  if(!rows.length) return;
-  
-  const isAsc=sortState.col===colIdx?sortState.dir===1:true;
-  sortState.col=colIdx;
-  sortState.dir=isAsc?-1:1;
-  
-  rows.sort((a,b)=>{
-    let aVal=(a.children[colIdx]?.textContent||'').trim();
-    let bVal=(b.children[colIdx]?.textContent||'').trim();
-    
-    // Date sorting for first column
-    if(colIdx===0){
-      const monthYearToDate=str=>{
-        if(!str||str==='—') return new Date(0);
-        const [month,year]=str.split(' ');
-        const monthMap={'jan':0,'feb':1,'mar':2,'apr':3,'may':4,'jun':5,'jul':6,'aug':7,'sep':8,'oct':9,'nov':10,'dec':11};
-        const m=monthMap[month.toLowerCase()]??-1;
-        return m===-1?new Date(0):new Date(year,m,1);
-      };
-      const aDate=monthYearToDate(aVal);
-      const bDate=monthYearToDate(bVal);
-      return(aDate-bDate)*sortState.dir;
-    }
-    
-    // Numeric sorting
-    const aNum=parseFloat(aVal);
-    const bNum=parseFloat(bVal);
-    if(!isNaN(aNum)&&!isNaN(bNum)) return(aNum-bNum)*sortState.dir;
-    
-    return aVal.localeCompare(bVal)*sortState.dir;
-  });
-  
-  rows.forEach(r=>tbody.appendChild(r));
-  
-  document.querySelectorAll('#r6-tbl-2 thead th').forEach(th=>{
-    th.style.fontStyle='normal';
-  });
-  table.querySelector('thead tr').children[colIdx].style.fontStyle='italic';
-}
-
-function renderR7(){
-  const all=allRows();
-  const cs=r=>classifyStatus(get(r,COL.STATUS));
-  const notwilling=all.filter(r=>cs(r)==='notwilling');
-  const willing=all.filter(r=>cs(r)==='willing');
-  const noContractor=all.filter(r=>!get(r,COL.CONTRACTOR));
-  const noExt=all.filter(r=>!get(r,COL.EXTDATE));
-  const today=new Date();
-  const overdue=all.filter(r=>{
-    const e=parseDate(get(r,COL.EXTDATE));
-    return e&&monthsBetween(e,today)>6;
-  });
-
-  let html=`<div class="kpi-row">
-    ${kpiCard(notwilling.length,'Contractor Not Willing','danger','Immediate action needed')}
-    ${kpiCard(willing.length,'Willing but Not Started','warn','Follow-up required')}
-    ${kpiCard(overdue.length,'Overdue > 6 months','danger','Critical delay')}
-    ${kpiCard(noContractor.length,'No Contractor Assigned','warn','')}
-    ${kpiCard(noExt.length,'Missing Extension Date','info','')}
-  </div>`;
-
-  const makeTable=(rows,title,sub)=>{
-    if(!rows.length) return `<div class="section"><div class="section-head"><h3>${title}</h3><span>${sub}</span></div><div class="table-empty" style="padding:12px">No schemes in this category.</div></div>`;
-    let tbl=`<table><thead><tr><th>#</th><th>Sub-Division</th><th>Scheme ID</th><th>Scheme Name</th><th>Contractor</th><th>Extension</th><th>Status</th></tr></thead><tbody>`;
-    rows.forEach((r,i)=>{
-      tbl+=`<tr><td>${i+1}</td><td>${get(r,COL.SUBDIV)||r.sheet}</td><td>${get(r,COL.SCHEMEID)||'—'}</td><td>${get(r,COL.SCHEMENAME)||'—'}</td><td>${get(r,COL.CONTRACTOR)||'—'}</td><td>${fmtMonthYear(get(r,COL.EXTDATE))}</td><td>${statusBadge(get(r,COL.STATUS))}</td></tr>`;
-    });
-    tbl+=`</tbody></table>`;
-    return sectionWrap(title,sub,tbl);
-  };
-  html+=makeTable(notwilling,'Contractor Not Willing to Start',`${notwilling.length} schemes — immediate action`);
-  html+=makeTable(willing,'Contractor Willing but Not Started',`${willing.length} schemes — follow up`);
-  html+=makeTable(overdue,'Schemes Overdue by More Than 6 Months',`${overdue.length} schemes`);
-  html+=makeTable(noContractor,'Schemes Without Contractor',`${noContractor.length} schemes`);
-  document.getElementById('page-r7').innerHTML=html;
-}
-
-function renderSearch(){
-  const fid='f-search';
-  let html=`<div class="filters-bar" id="${fid}">
-    <div class="filter-group"><label>Search (Scheme / ID / Contractor / SO)</label>
-    <input id="${fid}-q" placeholder="Type to search all schemes..." oninput="renderCurrentPage()" style="width:300px"></div>
-    <div class="filter-group"><label>Sheet</label><select id="${fid}-sheet" onchange="renderCurrentPage()"><option value="all">Both</option><option value="tinsukia">Tinsukia</option><option value="digboi">Digboi</option></select></div>
-    <div class="filter-group"><label>Status</label><select id="${fid}-status" onchange="renderCurrentPage()"><option value="all">All</option><option value="started">Started</option><option value="willing">Willing</option><option value="notwilling">Not Willing</option></select></div>
-  </div>`;
-
-  const q=(document.getElementById('f-search-q')||{value:''}).value||'';
-  const sheet=(document.getElementById('f-search-sheet')||{value:'all'}).value||'all';
-  const status=(document.getElementById('f-search-status')||{value:'all'}).value||'all';
-
-  let rows=filterRows(allRows(),{search:q,sheet,status});
-
-  html+=`<div style="font-size:11px;color:var(--gray2);margin-bottom:8px">${rows.length} scheme(s) found</div>`;
-  let tbl=`<table><thead><tr><th>#</th><th>Sheet</th><th>Sub-Division</th><th>SO Name</th><th>Scheme ID</th><th>Scheme Name</th><th>TYPE-1</th><th>TYPE-2</th><th>Contractor</th><th>NJJM Date</th><th>Extension</th><th>Tentative</th><th>Status</th></tr></thead><tbody>`;
-  rows.slice(0,500).forEach((r,i)=>{
-    tbl+=`<tr><td>${i+1}</td><td><span class="badge b-navy">${r.sheet}</span></td>
-    <td>${get(r,COL.SUBDIV)||'—'}</td><td>${get(r,COL.SO)||'—'}</td>
-    <td>${get(r,COL.SCHEMEID)||'—'}</td><td>${get(r,COL.SCHEMENAME)||'—'}</td>
-    <td>${get(r,COL.TYPE1)||'—'}</td><td>${get(r,COL.TYPE2)||'—'}</td>
-    <td>${get(r,COL.CONTRACTOR)||'—'}</td>
-    <td>${fmtDate(get(r,COL.NJJMDATE))}</td>
-    <td><span class="badge b-ext">${fmtMonthYear(get(r,COL.EXTDATE))}</span></td>
-    <td>${fmtDate(get(r,COL.TENTDATE))}</td>
-    <td>${statusBadge(get(r,COL.STATUS))}</td></tr>`;
-  });
-  if(!rows.length) tbl+=`<tr><td colspan="13" class="table-empty">No results found.</td></tr>`;
-  tbl+=`</tbody></table>`;
-  html+=sectionWrap('Scheme Register',`Showing ${Math.min(rows.length,500)} of ${rows.length}`,tbl);
-  document.getElementById('page-search').innerHTML=html;
-}
-
-const PAGE_TITLES={
-  dashboard:'Executive Dashboard',
-  r1:'Report 1 — Work Started Status (CIRP)',
-  r2:'Report 2 — Contractor Wise Report',
-  r3:'Report 3 — Combined Division (Tinsukia + Digboi)',
-  r4:'Report 4 — Delay Analysis',
-  r5:'Report 5 — Scheme-Wise Progress Tracker',
-  r6:'Report 6 — Extension Pivot Table',
-  r7:'Report 7 — Pending Action Report',
-  search:'Scheme Register — Search All',
-};
-
-function showPage(id){
-  currentPage=id;
-  document.querySelectorAll('.page').forEach(p=>p.style.display='none');
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById('page-'+id).style.display='';
-  document.getElementById('nav-'+id).classList.add('active');
-  document.getElementById('page-title').textContent=PAGE_TITLES[id]||id;
-  renderCurrentPage();
-}
-
-function renderCurrentPage(){
-  const p=currentPage;
-  if(p==='dashboard') renderDashboard();
-  else if(p==='r1') renderR1();
-  else if(p==='r2') renderR2();
-  else if(p==='r3') renderR3();
-  else if(p==='r4') renderR4();
-  else if(p==='r5') renderR5();
-  else if(p==='r6') renderR6();
-  else if(p==='r7') renderR7();
-  else if(p==='search') renderSearch();
-}
-
-function getExportRows(){
-  return filterRows(allRows(),{});
-}
-
-function exportCSV(){
-  const rows=getExportRows();
-  const headers=['Sheet','SN','Sub-Division','SO Name','SchemeId','SchemeName','NJJM Date','Extension Date','Tentative Date','Work Status','TYPE-1','TYPE-2','Contractor'];
-  const lines=[headers.join(',')];
-  rows.forEach(r=>{
-    lines.push([r.sheet,get(r,COL.SN),get(r,COL.SUBDIV),get(r,COL.SO),get(r,COL.SCHEMEID),`"${get(r,COL.SCHEMENAME)}"`,get(r,COL.NJJMDATE),get(r,COL.EXTDATE),get(r,COL.TENTDATE),get(r,COL.STATUS),get(r,COL.TYPE1),get(r,COL.TYPE2),`"${get(r,COL.CONTRACTOR)}"`].join(','));
-  });
-  const blob=new Blob([lines.join('\n')],{type:'text/csv'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download=`CIRP_Data_${new Date().toISOString().slice(0,10)}.csv`;a.click();
-}
-
-function exportExcel(){
-  if(typeof XLSX==='undefined'){alert('Excel library not loaded. Try again.');return;}
-  const rows=getExportRows();
-  const wb=XLSX.utils.book_new();
-  ['tinsukia','digboi'].forEach(sheet=>{
-    const sheetRows=rows.filter(r=>r.sheet===sheet);
-    const headers=['SN','Sub-Division','SO Name','SchemeId','SchemeName','NJJM Date','Extension Date','Tentative Date','Work Status','TYPE-1','TYPE-2','Contractor'];
-    const data=[headers,...sheetRows.map(r=>Object.values(COL).map(i=>get(r,i)))];
-    const ws=XLSX.utils.aoa_to_sheet(data);
-    XLSX.utils.book_append_sheet(wb,ws,sheet.charAt(0).toUpperCase()+sheet.slice(1));
-  });
-  XLSX.writeFile(wb,`CIRP_Data_${new Date().toISOString().slice(0,10)}.xlsx`);
-}
-
-function showLoading(show,msg=''){
-  document.getElementById('loading-overlay').style.display=show?'flex':'none';
-  if(msg) setMsg(msg);
-}
-function setMsg(m){document.getElementById('load-msg').textContent=m;}
-function showErr(msg){document.getElementById('err-area').innerHTML=`<div class="err-box">${msg}</div>`;}
-function setDotStatus(which,count){
-  document.getElementById('dot-'+which).className='dot'+(count>0?' ok':'');
-  document.getElementById('status-'+which).textContent=(which==='t'?'Tinsukia':'Digboi')+': '+(count>0?count+' schemes':'load failed');
-}
+loadAll(true);
+startAutoRefresh();
 </script>
 </body>
 </html>
