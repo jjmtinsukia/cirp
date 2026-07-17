@@ -190,7 +190,7 @@ input[type=checkbox]{accent-color:var(--teal);}
 .kpi-strip{
   display:grid;
   grid-template-columns:repeat(5,1fr);
-    gap:12px;
+  gap:12px;
   padding:20px clamp(16px,3vw,40px) 0;
   max-width:1500px;
   margin:0 auto;
@@ -526,7 +526,7 @@ footer{
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>
         Refresh
       </button>
-      <a class="sheet-btn" href="https://docs.google.com/spreadsheets/d/1e5-DMSWzGL8MUNVFiqrbG9PV0s4zJ2ywEATOrrUUoDY/edit?gid=808219995#gid=808219995" target="_blank" rel="noopener noreferrer">
+      <a class="sheet-btn" href="https://docs.google.com/spreadsheets/d/1rMfCXXtsbNN7mSzyG3Huh57o9HW8V-MhRfsiWciVfR0/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Open Sheet
       </a>
@@ -604,13 +604,13 @@ footer{
 </footer>
 
 <script>
-const SHEET_ID = "1e5-DMSWzGL8MUNVFiqrbG9PV0s4zJ2ywEATOrrUUoDY";
+const SHEET_ID = "1rMfCXXtsbNN7mSzyG3Huh57o9HW8V-MhRfsiWciVfR0";
 const IMIS_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQwCZb7LO3b1KMda5osejVObaQuYwbz4pak7tiH4tjiVLe9zg7UiHyb4lPqVqdFCtPm22N8k3vtYSOX/pub?gid=0&single=true&output=csv";
 
 const TABS = [
-  {key:"pwss",  name:"New SVS - PWSS",  short:"PWSS (SVS)", gid:"700142457"},
-  {key:"mvs",   name:"New MVS",         short:"MVS",        gid:"1174022611"},
-  {key:"mvsqq", name:"New MVS (Q&Q)",   short:"MVS (Q&Q)",  gid:"808219995"}
+  {key:"pwss",  name:"New SVS - PWSS",  short:"PWSS (SVS)", gid:"0"},
+  {key:"mvs",   name:"New MVS",         short:"MVS",        gid:"126597272"},
+  {key:"mvsqq", name:"New MVS (Q&Q)",   short:"MVS (Q&Q)",  gid:"1958368081"}
 ];
 
 const TARGET_DIVISION = "tinsukia";
@@ -1097,7 +1097,7 @@ function renderTableBody(filtered){
       <td class="mono">${r.schemeId}</td>
       <td class="wrap">${r.schemeName}</td>
       <td>${r.status||"--"}</td>
-      <td class="mono">${r.finPct!==null ? r.finPct.toFixed(1)+"%" : "--"} <span class="flow-gauge mini risk-${r.risk}"><span class="fill" style="width:${r.finPct!==null?Math.min(100,r.finPct):0}%"></span></span></td>
+      <td class="mono">${r.finPct!==null ? r.finPct.toFixed(1)+"%"  : "--"} <span class="flow-gauge mini risk-${r.risk}"><span class="fill" style="width:${r.finPct!==null?Math.min(100,r.finPct):0}%"></span></span></td>
       <td>${r.njjmDate||"--"}</td>
       <td><span class="badge ${r.risk}">${riskLabel(r.risk)}</span></td>
       <td class="wrap">${r.issueGroup||"--"}</td>
